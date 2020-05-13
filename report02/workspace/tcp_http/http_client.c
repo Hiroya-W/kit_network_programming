@@ -15,6 +15,8 @@
 #define PORT 80
 #define BUFSIZE 1024 /* バッファサイズ */
 
+int get_cont_by_fieldname(char out[], char buf[], char word[]);
+
 int main() {
     struct hostent *server_host;
     // struct sockaddr_in proxy_adrs;
@@ -77,6 +79,52 @@ int main() {
     /* 受信した文字列を画面に書く */
     printf("%s", r_buf);
 
+    /* fieldの表示 */
+    printf("\n");
+    char *p;
+    p = strstr(r_buf, "Server");
+    if (p != NULL) {
+        while (*p != '\n') {
+            printf("%c", *p);
+            p++;
+        }
+        printf("\n");
+    } else {
+        printf("Serve fieldが見つかりませんでした\n");
+    }
+
+    char contents_of_server[BUFSIZE] = {};
+    if (get_cont_by_fieldname(contents_of_server, r_buf, "Server") != -1) {
+        printf("サーバープログラム: %s\n", contents_of_server);
+    } else {
+        printf("Serverフィールドは含まれていません。\n");
+    }
+
+    char size_of_contents[BUFSIZE] = {};
+    if (get_cont_by_fieldname(size_of_contents, r_buf, "Content-Length") != -1) {
+        printf("コンテンツの大きさ: %s\n", size_of_contents);
+    } else {
+        printf("Content-Lengthフィールドは含まれていません。\n");
+    }
+
     close(tcpsock); /* ソケットを閉じる */
     exit(EXIT_SUCCESS);
+}
+
+int get_cont_by_fieldname(char out[], char buf[], char word[]) {
+    char *p = NULL;
+    int len = 0;
+    p = strstr(buf, word);
+
+    if (p == NULL) {
+        return -1;
+    }
+
+    p = strstr(p, ": ") + 2;
+    len = strstr(p, "\r\n") - p;
+    len = len < BUFSIZE ? len : BUFSIZE;
+
+    strncpy(out, p, len);
+    out[len] = '\0';
+    return 0;
 }
