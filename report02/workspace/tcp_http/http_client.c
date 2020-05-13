@@ -1,7 +1,11 @@
-/*
-   Proxyを介してHTTPサーバと対話するクライアントプログラム
-　　（利用者が自らHTTPを入力する必要がある）
-*/
+/**
+ * Proxyを介してHTTPサーバと対話するクライアントプログラム
+ * 実行例:
+ * ./program http://www.sec.is.kit.ac.jp
+ * ./program http://www.mlit.go.jp/
+ * プロキシサーバの代わりにHostとPortを指定してもOK
+ * ./program http://www.mlit.go.jp/ www.mlit.go.jp 80
+ */
 #include <netdb.h>
 #include <netinet/in.h>
 #include <regex.h>
@@ -106,6 +110,9 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
     r_buf[strsize] = '\0';
+
+    /* 受信した文字列を画面に書く */
+    // printf("%s", r_buf);
 
     /** 
      * fieldの内容の表示
