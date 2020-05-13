@@ -75,22 +75,8 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    /* キーボードから文字列を入力してサーバに送信 */
-    // while ((fgets(k_buf, BUFSIZE, stdin) != NULL) && k_buf[0] != '\n') { /* 空行が入力されるまで繰り返し */
-    //     strsize = strlen(k_buf);
-    //     k_buf[strsize - 1] = 0;                    /* 末尾の改行コードを消す */
-    //     snprintf(s_buf, BUFSIZE, "%s\r\n", k_buf); /* HTTPの改行コードは \r\n */
-    //
-    //     /* 文字列をサーバに送信する */
-    //     if (send(tcpsock, s_buf, strsize + 1, 0) == -1) {
-    //         fprintf(stderr, "send()");
-    //         exit(EXIT_FAILURE);
-    //     }
-    // }
-
     /* 文字列をサーバに送信する */
-
-    /*
+    /**
      * HEAD http://example.com
      */
     snprintf(s_buf, BUFSIZE, "HEAD %s HTTP/1.1\r\n", argv[1]);
@@ -99,7 +85,7 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "文字列をサーバに送信できませんでした。\n");
         exit(EXIT_FAILURE);
     }
-    /*
+    /**
      * Host: example.com
      */
     snprintf(s_buf, BUFSIZE, "Host: %s\r\n", hostname);
@@ -109,7 +95,7 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    /*
+    /**
      * 改行
      */
     send(tcpsock, "\r\n", 2, 0); /* HTTPのメソッド（コマンド）の終わりは空行 */
@@ -121,10 +107,7 @@ int main(int argc, char *argv[]) {
     }
     r_buf[strsize] = '\0';
 
-    /* 受信した文字列を画面に書く */
-    // printf("%s", r_buf);
-
-    /* 
+    /** 
      * fieldの内容の表示
      */
     char contents_of_server[BUFSIZE] = {};
@@ -145,6 +128,13 @@ int main(int argc, char *argv[]) {
     exit(EXIT_SUCCESS);
 }
 
+/**
+ * @fun
+ * 入力されたURLをパースして、SchemeとHostを取得する。 
+ * @param (out) パースした結果として、URL Scheme Hostを格納する配列
+ * @param (in) URL文字列が格納された配列
+ * @return 成功した時:0 失敗した時:-1
+ */
 int url_parse(char out[3][128], char in[]) {
     const char pattern[] = "^([httpsfile]+)://([0-9a-zA-Z.-]+)/?";
     regex_t regexBuffer;
@@ -181,6 +171,13 @@ int url_parse(char out[3][128], char in[]) {
     return 0;
 }
 
+/**
+ * @fun
+ * HTTPレスポンスのヘッダフィールドから指定したフィールド名の内容を取得する。
+ * @param (out) 指定したフィールド名の内容を格納する配列
+ * @param (buf) HTTPレスポンスのヘッダフィールド全文を入力とする
+ * @return 成功した時:0 失敗した時:-1
+ */
 int get_cont_by_fieldname(char out[], char buf[], char word[]) {
     char *p = NULL;
     int len = 0;
