@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
 
     /* サーバ名をアドレス(hostent構造体)に変換する */
     if ((server_host = gethostbyname(hostname)) == NULL) {
-        fprintf(stderr, "gethostbyname()");
+        fprintf(stderr, "サーバ名をアドレスに変換できませんでした。\n");
         exit(EXIT_FAILURE);
     }
 
@@ -65,13 +65,13 @@ int main(int argc, char *argv[]) {
 
     /* ソケットをSTREAMモードで作成する */
     if ((tcpsock = socket(PF_INET, SOCK_STREAM, 0)) == -1) {
-        fprintf(stderr, "socket()");
+        fprintf(stderr, "ソケットの作成ができませんでした。\n");
         exit(EXIT_FAILURE);
     }
 
     /* ソケットにサーバの情報を対応づけてサーバに接続する */
     if (connect(tcpsock, (struct sockaddr *)&server_adrs, sizeof(server_adrs)) == -1) {
-        fprintf(stderr, "connect");
+        fprintf(stderr, "サーバに接続できませんでした。\n");
         exit(EXIT_FAILURE);
     }
 
@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
     snprintf(s_buf, BUFSIZE, "HEAD %s HTTP/1.1\r\n", argv[1]);
     strsize = strlen(s_buf);
     if (send(tcpsock, s_buf, strsize, 0) == -1) {
-        fprintf(stderr, "send()");
+        fprintf(stderr, "文字列をサーバに送信できませんでした。\n");
         exit(EXIT_FAILURE);
     }
     /*
@@ -105,7 +105,7 @@ int main(int argc, char *argv[]) {
     snprintf(s_buf, BUFSIZE, "Host: %s\r\n", hostname);
     strsize = strlen(s_buf);
     if (send(tcpsock, s_buf, strsize, 0) == -1) {
-        fprintf(stderr, "send()");
+        fprintf(stderr, "文字列をサーバに送信できませんでした。\n");
         exit(EXIT_FAILURE);
     }
 
@@ -116,7 +116,7 @@ int main(int argc, char *argv[]) {
 
     /* サーバから文字列を受信する */
     if ((strsize = recv(tcpsock, r_buf, BUFSIZE - 1, 0)) == -1) {
-        fprintf(stderr, "recv()");
+        fprintf(stderr, "サーバから文字列を受信できませんでした。\n");
         exit(EXIT_FAILURE);
     }
     r_buf[strsize] = '\0';
@@ -153,13 +153,13 @@ int url_parse(char out[3][128], char in[]) {
 
     // 正規表現オブジェクトをコンパイル
     if (regcomp(&regexBuffer, pattern, REG_EXTENDED | REG_NEWLINE) != 0) {
-        printf("regcomp failed\n");
+        printf("正規表現が不正です。\n");
         return -1;
     }
     // 正規表現パターンとマッチする？
     size = sizeof(match) / sizeof(regmatch_t);
     if (regexec(&regexBuffer, in, size, match, 0) != 0) {
-        printf("no match\n");
+        printf("正規表現パターンにURLがマッチしませんでした。\n");
         return -1;
     }
     // パターンマッチした場合の処理
@@ -169,7 +169,7 @@ int url_parse(char out[3][128], char in[]) {
         int startIndex = match[i].rm_so;  // 開始インデックス
         int endIndex = match[i].rm_eo;    // 終了インデックス
         if (startIndex == -1 || endIndex == -1) {
-            printf("exit");
+            // printf("exit");
             continue;
         }
         // printf("index [start, end] = %d, %d\n", startIndex, endIndex);
