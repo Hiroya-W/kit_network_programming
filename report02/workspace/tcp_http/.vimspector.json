@@ -7,7 +7,9 @@
                 "type": "cppdbg",
                 "request": "launch",
                 "program": "${workspaceFolder}/http_client",
-                "args": [],
+                "args": [
+                    "http://www.sec.is.kit.ac.jp/index.html"
+                ],
                 "stopAtEntry": false,
                 "cwd": "${workspaceFolder}",
                 "environment": [],

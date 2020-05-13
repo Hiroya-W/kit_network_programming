@@ -4,6 +4,7 @@
 */
 #include <netdb.h>
 #include <netinet/in.h>
+#include <regex.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,24 +12,71 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-// #define PROXYPORT 8080  /* プロキシサーバのポート番号 */
-#define PORT 80
 #define BUFSIZE 1024 /* バッファサイズ */
 
 int get_cont_by_fieldname(char out[], char buf[], char word[]);
+int url_parse(char out[3][128], char in[]);
 
-int main() {
+int url_parse(char out[3][128], char in[]) {
+    const char pattern[] = "^([httpsfile]+)://([0-9a-zA-Z.-]+)/?";
+    regex_t regexBuffer;
+    regmatch_t match[3];
+    int size;
+
+    // 正規表現オブジェクトをコンパイル
+    if (regcomp(&regexBuffer, pattern, REG_EXTENDED | REG_NEWLINE) != 0) {
+        printf("regcomp failed\n");
+        return -1;
+    }
+    // 正規表現パターンとマッチする？
+    size = sizeof(match) / sizeof(regmatch_t);
+    if (regexec(&regexBuffer, in, size, match, 0) != 0) {
+        printf("no match\n");
+        return -1;
+    }
+    // パターンマッチした場合の処理
+    int i;
+    for (i = 0; i < size; i++) {
+        // マッチした位置の開始・終了インデックス
+        int startIndex = match[i].rm_so;  // 開始インデックス
+        int endIndex = match[i].rm_eo;    // 終了インデックス
+        if (startIndex == -1 || endIndex == -1) {
+            printf("exit");
+            continue;
+        }
+        printf("index [start, end] = %d, %d\n", startIndex, endIndex);
+        strncpy(out[i], in + startIndex, endIndex - startIndex);
+        printf("%s\n", out[i]);
+    }
+    regfree(&regexBuffer);
+    return 0;
+}
+
+int main(int argc, char *argv[]) {
     struct hostent *server_host;
-    // struct sockaddr_in proxy_adrs;
     struct sockaddr_in server_adrs;
 
     int tcpsock;
-
-    // char proxyname[] = "proxy.cis.kit.ac.jp"; /* プロキシサーバ */
-    // http://www.sec.is.kit.ac.jp/index.html
-    char servername[] = "www.sec.is.kit.ac.jp";
-    char k_buf[BUFSIZE], s_buf[BUFSIZE], r_buf[BUFSIZE];
+    int port = 80;
     int strsize;
+
+    char url[3][128] = {};
+    char servername[128] = {};
+    char hostname[128] = {};
+    char k_buf[BUFSIZE], s_buf[BUFSIZE], r_buf[BUFSIZE];
+
+    if (argc == 2) {
+        if (url_parse(url, argv[1]) == -1) {
+            fprintf(stderr, "URLのパースに失敗しました\n");
+        }
+        strcpy(hostname, url[2]);
+    } else if (argc == 4) {
+        strcpy(hostname, argv[2]);
+        port = atoi(argv[3]);
+    } else {
+        fprintf(stderr, "Usage: http://example.com [proxy.host.name port]\n");
+        return 1;
+    }
 
     /* サーバ名をアドレス(hostent構造体)に変換する */
     if ((server_host = gethostbyname(servername)) == NULL) {
@@ -39,7 +87,7 @@ int main() {
     /* サーバの情報をsockaddr_in構造体に格納する */
     memset(&server_adrs, 0, sizeof(server_adrs));
     server_adrs.sin_family = AF_INET;
-    server_adrs.sin_port = htons(PORT);
+    server_adrs.sin_port = htons(port);
     memcpy(&server_adrs.sin_addr, server_host->h_addr_list[0], server_host->h_length);
 
     /* ソケットをSTREAMモードで作成する */
@@ -77,34 +125,21 @@ int main() {
     r_buf[strsize] = '\0';
 
     /* 受信した文字列を画面に書く */
-    printf("%s", r_buf);
+    // printf("%s", r_buf);
 
     /* fieldの表示 */
-    printf("\n");
-    char *p;
-    p = strstr(r_buf, "Server");
-    if (p != NULL) {
-        while (*p != '\n') {
-            printf("%c", *p);
-            p++;
-        }
-        printf("\n");
-    } else {
-        printf("Serve fieldが見つかりませんでした\n");
-    }
-
     char contents_of_server[BUFSIZE] = {};
     if (get_cont_by_fieldname(contents_of_server, r_buf, "Server") != -1) {
         printf("サーバープログラム: %s\n", contents_of_server);
     } else {
-        printf("Serverフィールドは含まれていません。\n");
+        fprintf(stderr, "Serverフィールドは含まれていません。\n");
     }
 
     char size_of_contents[BUFSIZE] = {};
     if (get_cont_by_fieldname(size_of_contents, r_buf, "Content-Length") != -1) {
         printf("コンテンツの大きさ: %s\n", size_of_contents);
     } else {
-        printf("Content-Lengthフィールドは含まれていません。\n");
+        fprintf(stderr, "Content-Lengthフィールドは含まれていません。\n");
     }
 
     close(tcpsock); /* ソケットを閉じる */
