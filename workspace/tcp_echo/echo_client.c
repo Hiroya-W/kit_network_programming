@@ -7,7 +7,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define PORT 7        /* ポート番号  実験するとき書き換える、例えば、50000 */
+#define PORT 50000    /* ポート番号  実験するとき書き換える、例えば、50000 */
 #define S_BUFSIZE 100 /* 送信用バッファサイズ */
 #define R_BUFSIZE 100 /* 受信用バッファサイズ */
 
@@ -31,7 +31,7 @@ int main() {
     /* サーバの情報をsockaddr_in構造体に格納する */
     memset(&server_adrs, 0, sizeof(server_adrs));
     server_adrs.sin_family = AF_INET;
-    server_adrs.sin_port   = htons(PORT);
+    server_adrs.sin_port = htons(PORT);
     memcpy(&server_adrs.sin_addr, server_host->h_addr_list[0],
            server_host->h_length);
 

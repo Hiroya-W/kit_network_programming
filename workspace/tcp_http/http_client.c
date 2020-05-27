@@ -112,7 +112,7 @@ int main(int argc, char *argv[]) {
     r_buf[strsize] = '\0';
 
     /* 受信した文字列を画面に書く */
-    // printf("%s", r_buf);
+    printf("%s", r_buf);
 
     /** 
      * fieldの内容の表示
