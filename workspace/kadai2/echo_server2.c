@@ -36,6 +36,7 @@ char *REQUIRE_PASS_MESSAGE = "パスワードを入力してください。\r\n"
 char *PASS_PROMPT = "パスワード: ";
 char *SUCCSESS_PASS_MESSAGE = "パスワード認証に成功しました\r\n";
 char *FAILED_PASS_MESSAGE = "パスワード認証に失敗しました。入力しなおしてください。\r\n";
+char *WORKSPACE_FOLDER = "~/Documents/";
 
 void send_to_client(int sock_accepted, char *s_buf, int flag);
 void get_op_code(char *out, char *r_buf);
@@ -86,7 +87,6 @@ int main(int argc, char *argv[]) {
     sock_accepted = accept(sock_listen, NULL, NULL);
     send_to_client(sock_accepted, SET_PASS_MESSAGE, 0);
 
-    /* 文字列をクライアントから受信する */
     if ((strsize = recv(sock_accepted, r_buf, R_BUFSIZE, 0)) == -1) {
         fprintf(stderr, "recv()");
         exit(EXIT_FAILURE);
@@ -129,9 +129,7 @@ int main(int argc, char *argv[]) {
         }
 
         while (Continue) {
-            /* プロンプトの送信 */
             send_to_client(sock_accepted, "> ", 0);
-            /* 文字列をクライアントから受信する */
             if ((strsize = recv(sock_accepted, r_buf, R_BUFSIZE, 0)) == -1) {
                 fprintf(stderr, "recv()");
                 exit(EXIT_FAILURE);
@@ -155,7 +153,9 @@ int main(int argc, char *argv[]) {
                 break;
             } else if (strcmp(op_code, "list") == 0) {
                 FILE *fp;
-                char *cmd = "/usr/bin/ls ~/Documents/";
+                char *prefix = "/usr/bin/ls";
+                char cmd[CMD_BUFSIZE];
+                snprintf(cmd, CMD_BUFSIZE, "%s %s", prefix, WORKSPACE_FOLDER);
 
                 if ((fp = popen(cmd, "r")) != NULL) {
                     while (fgets(s_buf, S_BUFSIZE, fp) != NULL) {
@@ -171,9 +171,9 @@ int main(int argc, char *argv[]) {
                 path_find_filename(op_code, op_code);
 
                 FILE *fp;
-                char *prefix = "/usr/bin/cat ~/Documents/";
+                char *prefix = "/usr/bin/cat";
                 char cmd[CMD_BUFSIZE];
-                snprintf(cmd, CMD_BUFSIZE, "%s%s", prefix, op_code);
+                snprintf(cmd, CMD_BUFSIZE, "%s %s%s", prefix, WORKSPACE_FOLDER, op_code);
                 if ((fp = popen(cmd, "r")) != NULL) {
                     while (fgets(s_buf, S_BUFSIZE, fp) != NULL) {
                         send_to_client(sock_accepted, s_buf, 0);
