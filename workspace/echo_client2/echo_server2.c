@@ -1,15 +1,22 @@
 #include "mynet.h"
 
-#define PORT 50000 /* ポート番号 ←適当に書き換える */
 #define BUFSIZE 50 /* バッファサイズ */
 
-int main() {
+int main(int argc, char *argv[]) {
     int sock_listen, sock_accepted;
     int strsize;
+    int port;
 
     char buf[BUFSIZE];
 
-    sock_listen = init_tcpserver(50000, 5);
+    if (argc == 2) {
+        port = argv[1];
+    } else {
+        fprintf(stderr, "ポート番号を指定してください。\n使い方: ./program port\n");
+        return 1;
+    }
+
+    sock_listen = init_tcpserver(port, 5);
     /* クライアントの接続を受け付ける */
     sock_accepted = accept(sock_listen, NULL, NULL);
     close(sock_listen);

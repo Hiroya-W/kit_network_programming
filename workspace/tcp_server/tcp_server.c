@@ -7,10 +7,10 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define PORT 50000 /* ポート番号 ←適当に書き換える */
+#define PORT 50001 /* ポート番号 ←適当に書き換える */
 #define BUFSIZE 50 /* バッファサイズ */
 
-int main() {
+int main(int argc, char *argv[]) {
   struct sockaddr_in my_adrs;
 
   int sock_listen, sock_accepted;

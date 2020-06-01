@@ -1,0 +1,19 @@
+[
+ {
+  "directory": "/home/hiroya/Documents/Latex/kit/network_programming/workspace/curses_sample",
+  "arguments": [
+   "gcc",
+   "-I",
+   "../mynet",
+   "-L",
+   "../mynet",
+   "-W",
+   "-Wall",
+   "-c",
+   "-o",
+   "curses.o",
+   "curses.c"
+  ],
+  "file": "curses.c"
+ }
+]
