@@ -4,86 +4,72 @@
 
 #include "mynet.h"
 
-#define BUFSIZE 50 /* バッファサイズ */
+#define PRCS_LIMIT 10 /* プロセス数制限 */
+#define BUFSIZE 50    /* バッファサイズ */
 
 int main(int argc, char *argv[]) {
-    int prcs_limit = 10;
-    int port_number = 50000;
+    int port_number;
     int sock_listen, sock_accepted;
+    int n_process = 0;
     pid_t child;
     char buf[BUFSIZE];
     int strsize;
 
-    extern char *optarg;
-    extern int optind, opterr, optopt;
-
-    /* オプション文字列の取得 */
-    opterr = 0;
-    int c = 0;
-    while (1) {
-        c = getopt(argc, argv, "p:r:h");
-        if (c == -1) break;
-
-        switch (c) {
-            case 'p': /* ポート番号の指定 */
-                port_number = atoi(optarg);
-                break;
-            case 'r':
-                prcs_limit = atoi(optarg);
-                break;
-            case '?':
-                fprintf(stderr, "Unknown option '%c'\n", optopt);
-                exit(EXIT_FAILURE);
-                break;
-            case 'h':
-                fprintf(stderr, "Usage: %s [-p port_number] [-r process_limit]\n", argv[0]);
-                exit(EXIT_FAILURE);
-                break;
-        }
+    /* 引数のチェックと使用法の表示 */
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s Port_number\n", argv[0]);
+        exit(EXIT_FAILURE);
     }
 
-    fprintf(stdout, "終了する時はCtrl + Cする\n");
-    fprintf(stdout, "Server Port: %d\n", port_number);
-    fprintf(stdout, "Process Limit: %d\n\n", prcs_limit);
+    port_number = atoi(argv[1]);
 
     /* サーバの初期化 */
     sock_listen = init_tcpserver(port_number, 5);
 
-    // 親1 + 子prcs_limit-1 作る
-    printf("Parent ppid[%d],pid[%d]\n", getppid(), getpid());
-    int i;
-    for (i = 0; i < prcs_limit - 1; i++) {
+    for (;;) {
+        /* クライアントの接続を受け付ける */
+        sock_accepted = accept(sock_listen, NULL, NULL);
+
         if ((child = fork()) == 0) {
-            /* child process */
-            printf("Client is accepted.ppid[%d],pid[%d]\n", getppid(), getpid());
-            break;
+            /* Child process */
+            close(sock_listen);
+            do {
+                /* 文字列をクライアントから受信する */
+                if ((strsize = recv(sock_accepted, buf, BUFSIZE, 0)) == -1) {
+                    exit_errmesg("recv()");
+                }
+
+                /* 文字列をクライアントに送信する */
+                if (send(sock_accepted, buf, strsize, 0) == -1) {
+                    exit_errmesg("send()");
+                }
+            } while (buf[strsize - 1] != '\n'); /* 改行コードを受信するまで繰り返す */
+
+            close(sock_accepted);
+            exit(EXIT_SUCCESS);
         } else if (child > 0) {
             /* parent's process */
+            n_process++;
+            printf("Client is accepted.[%d]\n", child);
+            close(sock_accepted);
         } else {
             /* fork()に失敗 */
             close(sock_listen);
             exit_errmesg("fork()");
         }
+
+        /* ゾンビプロセスの回収 */
+        if (n_process == PRCS_LIMIT) {
+            child = wait(NULL); /* 制限数を超えたら 空きが出るまでブロック */
+            n_process--;
+            printf("wait n_process--\n");
+        }
+
+        while ((child = waitpid(-1, NULL, WNOHANG)) > 0) {
+            n_process--;
+            printf("waitpid n_process--\n");
+        }
     }
 
-    for (;;) {
-        /* クライアントの接続を受け付ける */
-        sock_accepted = accept(sock_listen, NULL, NULL);
-        printf("Connected.pid[%d]\n", getpid());
-
-        do {
-            /* 文字列をクライアントから受信する */
-            if ((strsize = recv(sock_accepted, buf, BUFSIZE, 0)) == -1) {
-                exit_errmesg("recv()");
-            }
-
-            /* 文字列をクライアントに送信する */
-            if (send(sock_accepted, buf, strsize, 0) == -1) {
-                exit_errmesg("send()");
-            }
-        } while (buf[strsize - 1] != '\n'); /* 改行コードを受信するまで繰り返す */
-
-        close(sock_accepted);
-    }
     /* never reached */
 }
