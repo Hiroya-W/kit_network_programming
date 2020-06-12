@@ -1,0 +1,49 @@
+[
+ {
+  "directory": "/home/hiroya/Documents/Latex/kit/network_programming/workspace/echo_client2",
+  "arguments": [
+   "gcc",
+   "-I",
+   "../mynet",
+   "-L",
+   "../mynet",
+   "-c",
+   "-o",
+   "echo_server2.o",
+   "echo_server2.c"
+  ],
+  "file": "echo_server2.c"
+ },
+ {
+  "directory": "/home/hiroya/Documents/Latex/kit/network_programming/workspace/echo_client2",
+  "arguments": [
+   "gcc",
+   "-I",
+   "../mynet",
+   "-L",
+   "../mynet",
+   "-c",
+   "-o",
+   "echo_client2.o",
+   "echo_client2.c"
+  ],
+  "file": "echo_client2.c"
+ },
+ {
+  "directory": "/home/hiroya/Documents/Latex/kit/network_programming/workspace/kadai2",
+  "arguments": [
+   "gcc",
+   "-I",
+   "../mynet",
+   "-L",
+   "../mynet",
+   "-W",
+   "-Wall",
+   "-c",
+   "-o",
+   "echo_server2.o",
+   "echo_server2.c"
+  ],
+  "file": "echo_server2.c"
+ }
+]
