@@ -104,6 +104,7 @@ int main(int argc, char *argv[]) {
                         } while (buf[strsize - 1] != '\n'); /* 改行コードを受信するまで繰り返す */
 
                         close(sock_accepted);
+                        printf("DisConnected.pid[%d]\n", getpid());
                     }
                     break;
                 } else if (child > 0) {
@@ -158,6 +159,7 @@ void *echo_thread(void *arg) {
     while (1) {
         /* クライアントの接続を受け付ける */
         sock_accepted = accept(sock_listen, NULL, NULL);
+        fprintf(stdout, "Connected. thread_id[%ld]\n", pthread_self());
         do {
             /* 文字列をクライアントから受信する */
             if ((strsize = recv(sock_accepted, buf, BUFSIZE, 0)) == -1) {
@@ -171,6 +173,7 @@ void *echo_thread(void *arg) {
         } while (buf[strsize - 1] != '\n'); /* 改行コードを受信するまで繰り返す */
 
         close(sock_accepted); /* ソケットを閉じる */
+        fprintf(stdout, "DisConnected. thread_id[%ld]\n", pthread_self());
     }
 
     return (NULL);
