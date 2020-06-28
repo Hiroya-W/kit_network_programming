@@ -1,0 +1,20 @@
+[
+ {
+  "directory": "/home/hiroya/Documents/Latex/kit/network_programming/workspace/chat-server",
+  "arguments": [
+   "gcc",
+   "-I",
+   "../mynet",
+   "-L",
+   "../mynet",
+   "-W",
+   "-Wall",
+   "-g",
+   "-c",
+   "-o",
+   "chat.o",
+   "chat.c"
+  ],
+  "file": "chat.c"
+ }
+]
