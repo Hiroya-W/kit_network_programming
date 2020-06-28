@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
 
     switch (mode) {
         case 'S':
-            //  quiz_server(port_number, num_client);  /*
+            quiz_server(port_number, num_client); /*
             //  サーバ部分ができたらコメントを外す */
             break;
         case 'C':
