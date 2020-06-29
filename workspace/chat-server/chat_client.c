@@ -37,7 +37,6 @@ void chat_client(char *servername, int port_number) {
             fgets(s_buf, S_BUFSIZE, stdin);
             strsize = strlen(s_buf);
             Send(sock, s_buf, strsize, 0);
-            return;
         }
 
         if (FD_ISSET(sock, &readfds)) {
@@ -46,6 +45,7 @@ void chat_client(char *servername, int port_number) {
             /* サーバから切断されたら */
             if (strsize == 0) {
                 printf("Chat-Server is down.\n");
+                printf("Disconnected.\n");
                 close(sock);
                 return;
             } else {
