@@ -68,13 +68,13 @@ int main(int argc, char *argv[]) {
             fprintf(stdout, "Mode: Server\n");
             fprintf(stdout, "Server Port: %d\n", port_number);
             fprintf(stdout, "Maximum number of clients: %d\n", num_client);
-            // quiz_server(port_number, num_client); /*
+            chat_server(port_number, num_client);
             break;
         case 'C':
             fprintf(stdout, "Mode: Client\n");
             fprintf(stdout, "Server name: %s\n", servername);
             fprintf(stdout, "Server Port: %d\n", port_number);
-            // quiz_client(servername, port_number);
+            chat_client(servername, port_number);
             break;
     }
 
