@@ -1,7 +1,7 @@
 /*
-  chat.c
+ * chat.c
 */
-// #include "quiz.h"
+#include "chat.h"
 
 #include <stdio.h>
 #include <stdlib.h>
