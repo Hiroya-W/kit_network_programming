@@ -1,5 +1,5 @@
 /*
- * quiz_server.c
+ * chat_server.c
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,142 +21,163 @@ typedef struct {
 } client_info;
 
 /* プライベート変数 */
-static int N_client;        /* クライアントの数 */
+static int Max_client;      /* クライアントの数 */
 static client_info *Client; /* クライアントの情報 */
 static int Max_sd = 0;      /* ディスクリプタ最大値 */
-static char Buf[BUFLEN];    /* 通信用バッファ */
-int cnt_client = 0;
+static int Cnt_client = 0;  /* 現在のクライアントの接続数 */
+static char SET_NAME_MESSAGE[] = "Input your name: ";
 
-void setMax_sd(int num);
-static char *chop_nl(char *s);
+/* プライベート関数 */
+static void init_client(int n_client);
+static int client_join(int client_id, int sock_listen);
+static void client_exit(int client_id);
+static void set_client_name(char *client_name, int client_id);
 static void send_chat_message(char *message, int from_client);
+static void handle_recv_data(int client_id, char *recv_buf, int strsize);
+static void setMax_sd(int num);
+static char *chop_nl(char *s);
 
 void chat_server(int port_number, int n_client) {
-    /* select用のビットマスク */
     fd_set mask, readfds;
-    /* クライアントの最大接続数をセット */
-    N_client = n_client;
-
     int client_id;
 
-    int sock_listen;
-    int sock_accepted;
-
-    int strsize;
-
-    static char full_message[] = "This server is full.\n";
-    static char set_name_message[] = "Input your name: ";
-
     /* サーバの初期化 */
-    sock_listen = init_tcpserver(port_number, 5);
+    const int SOCK_LISTEN = init_tcpserver(port_number, 5);
     /* selectで監視する値は現在、sock_listenまでである */
-    setMax_sd(sock_listen);
+    setMax_sd(SOCK_LISTEN);
 
-    /* クライアント情報の保存用構造体の初期化 */
-    if ((Client = (client_info *)malloc(N_client * sizeof(client_info))) == NULL) {
-        exit_errmesg("malloc()");
-    }
-    /* 接続されていないユーザはsock==-1とする */
-    /* ユーザ名は""が入ってる */
-    for (client_id = 0; client_id < N_client; client_id++) {
-        Client[client_id].sock = -1;
-        strncpy(Client[client_id].name, "", NAMELENGTH);
-    }
+    /* クライアント情報の初期化 */
+    init_client(n_client);
 
     /* selectで接続があったか確認したい */
     /* ビットマスクの準備 */
     FD_ZERO(&mask);
-    FD_SET(sock_listen, &mask);
+    FD_SET(SOCK_LISTEN, &mask);
 
     while (1) {
         readfds = mask;
         select(Max_sd + 1, &readfds, NULL, NULL, NULL);
 
         /* 接続上限を超えて接続があった場合はメッセージを返して通信を終了する */
-        if (cnt_client >= N_client && FD_ISSET(sock_listen, &readfds)) {
+        if (Cnt_client >= Max_client && FD_ISSET(SOCK_LISTEN, &readfds)) {
+            char FULL_MESSAGE[] = "This server is full.\n";
             /* クライアントの接続を受け付ける */
-            sock_accepted = Accept(sock_listen, NULL, NULL);
-            printf("%s sock_accepted[%d] disconnected.\n", full_message, sock_accepted);
-            Send(sock_accepted, full_message, strlen(full_message), 0);
-            close(sock_accepted);
+            const int SOCK_ACCEPTED = Accept(SOCK_LISTEN, NULL, NULL);
+            /* サーバーが満員であることを通知して切断する */
+            printf("%s sock_accepted[%d] disconnected.\n", FULL_MESSAGE, SOCK_ACCEPTED);
+            Send(SOCK_ACCEPTED, FULL_MESSAGE, strlen(FULL_MESSAGE), 0);
+            close(SOCK_ACCEPTED);
         }
 
-        for (client_id = 0; client_id < N_client; client_id++) {
-            /* クライアントの接続 */
-            /* 接続されていないユーザがいたら、接続するか確認してみる */
-            if ((Client[client_id].sock == -1) && FD_ISSET(sock_listen, &readfds)) {
+        for (client_id = 0; client_id < Max_client; client_id++) {
+            const int CLIENT_SOCK = Client[client_id].sock;
+            /* サーバが満員ではない時、新たに接続するクライアントがいるか確認してみる */
+            if ((CLIENT_SOCK == -1) && FD_ISSET(SOCK_LISTEN, &readfds)) {
                 /* クライアントの接続を受け付ける */
-                sock_accepted = Accept(sock_listen, NULL, NULL);
-
-                /* sockの最大値を更新する */
-                setMax_sd(sock_accepted);
-                /* クライアントの通信を確認するためのビットマスクをセット */
-                FD_SET(sock_accepted, &mask);
-
-                /* ユーザ情報を保存 */
-                printf("Client[%d] sock_accepted[%d] connected.\n", client_id, sock_accepted);
-                Client[client_id].sock = sock_accepted;
-
-                /* 名前登録用のプロンプトを送信 */
-                Send(sock_accepted, set_name_message, strlen(set_name_message), 0);
-
-                /* 現在の接続数をカウント */
-                cnt_client++;
-
+                const int SOCK_ACCEPTED = client_join(client_id, SOCK_LISTEN);
+                /* クライアントとの通信を確認するため、ビットマスクをセット */
+                FD_SET(SOCK_ACCEPTED, &mask);
                 /* 状態を更新 */
                 readfds = mask;
                 select(Max_sd + 1, &readfds, NULL, NULL, NULL);
             }
-            /* 接続されている時 */
-            else if (Client[client_id].sock != -1) {
-                if (FD_ISSET(Client[client_id].sock, &readfds)) {
-                    strsize = Recv(Client[client_id].sock, Buf, BUFLEN - 1, 0);
-                    Buf[strsize] = '\0';
+            /* クライアントが接続していなかったらスキップ */
+            if (CLIENT_SOCK == -1) {
+                continue;
+            }
+            /* 接続しているクライアントに対しての処理 */
+            if (FD_ISSET(CLIENT_SOCK, &readfds)) {
+                char recv_buf[BUFLEN]; /* 通信用バッファ */
+                /* クライアントからデータが届いているので受信する */
+                int strsize = Recv(Client[client_id].sock, recv_buf, BUFLEN - 1, 0);
+                recv_buf[strsize] = '\0';
 
-                    /* クライアントの切断があったか確認する */
-                    /* 切断された時はRecvから0が返ってくる */
-                    if (strsize == 0) {
-                        char send_message[SEND_BUFLEN];
-                        printf("%s Client[%d] sock_accepted[%d] disconnected.\n", Client[client_id].name, client_id, Client[client_id].sock);
-                        snprintf(send_message, SEND_BUFLEN, "%s disconnected.\n", Client[client_id].name);
-                        close(Client[client_id].sock);
-                        /* 再び接続を受け付けるようにする */
-                        Client[client_id].sock = -1;
-                        strncpy(Client[client_id].name, "", NAMELENGTH);
-                        cnt_client--;
-                        /* ユーザ退出の通知を行う */
-                        send_chat_message(send_message, -1);
-                    }
-                    /* 文字列を受信した時 */
-                    else {
-                        /* 名前がセットされていない時 */
-                        if (strlen(Client[client_id].name) == 0) {
-                            /* 名前をセットさせる */
-                            /* 改行だけはダメ */
-                            if (strcmp(Buf, "\n") == 0) {
-                                /* もう一度名前登録用のプロンプトを送信 */
-                                Send(Client[client_id].sock, set_name_message, strlen(set_name_message), 0);
-                            } else {
-                                char send_message[SEND_BUFLEN];
-                                /* ユーザ名から改行を除去 */
-                                chop_nl(Buf);
-                                /* ユーザ名を登録 */
-                                strncpy(Client[client_id].name, Buf, NAMELENGTH);
-                                /* ユーザ参加の通知を行う */
-                                snprintf(send_message, SEND_BUFLEN, "%s connected.\n", Buf);
-                                printf("%s", send_message);
-                                send_chat_message(send_message, -1);
-                            }
-                        } else {
-                            /* 全員に対してメッセージを送信する */
-                            send_chat_message(Buf, client_id);
-                        }
-                    }
-                }
+                /* メッセージ内容に合わせて処理する */
+                handle_recv_data(client_id, recv_buf, strsize);
             }
         }
     }
-    close(sock_listen);
+    close(SOCK_LISTEN);
+}
+
+/* クライアント情報の初期化 */
+static void init_client(const int N_CLIENT) {
+    int client_id;
+
+    /* クライアントの最大接続数をセット */
+    Max_client = N_CLIENT;
+    /* クライアント情報の保存用構造体の初期化 */
+    if ((Client = (client_info *)malloc(Max_client * sizeof(client_info))) == NULL) {
+        exit_errmesg("malloc()");
+    }
+    /* 接続されていないユーザはsock==-1とする */
+    /* ユーザ名は""が入ってる */
+    for (client_id = 0; client_id < Max_client; client_id++) {
+        Client[client_id].sock = -1;
+        strncpy(Client[client_id].name, "", NAMELENGTH);
+    }
+}
+
+/* クライアントの参加処理 */
+static int client_join(int client_id, int sock_listen) {
+    int sock_accepted;
+    /* クライアントの接続を受け付ける */
+    sock_accepted = Accept(sock_listen, NULL, NULL);
+
+    /* sockの最大値を更新する */
+    setMax_sd(sock_accepted);
+
+    /* ユーザ情報を保存 */
+    printf("Client[%d] sock_accepted[%d] connected.\n", client_id, sock_accepted);
+    Client[client_id].sock = sock_accepted;
+
+    /* 名前登録用のプロンプトを送信 */
+    Send(sock_accepted, SET_NAME_MESSAGE, strlen(SET_NAME_MESSAGE), 0);
+
+    /* 現在の接続数をカウント */
+    Cnt_client++;
+    /* selectによる監視のためにsock_acceptedを返す*/
+    return sock_accepted;
+}
+
+/* クライアントの退出処理 */
+static void client_exit(int client_id) {
+    char send_message[SEND_BUFLEN];
+    char client_name[NAMELENGTH];
+    int client_sock = Client[client_id].sock;
+
+    snprintf(client_name, NAMELENGTH, "%s", Client[client_id].name);
+
+    /* 通信を切断する */
+    close(client_sock);
+    /* 新しい接続を受け付けるようにクライアント情報を初期化する */
+    Client[client_id].sock = -1;
+    strncpy(Client[client_id].name, "", NAMELENGTH);
+    Cnt_client--;
+    /* 今いるクライアントに対して退出の通知を行う */
+    printf("%s Client[%d] sock_accepted[%d] disconnected.\n", client_name, client_id, client_sock);
+    snprintf(send_message, SEND_BUFLEN, "%s disconnected.\n", client_name);
+    send_chat_message(send_message, -1);
+}
+
+/* クライアントの名前をセットする */
+static void set_client_name(char *client_name, int client_id) {
+    /* 名前をセットする */
+    /* 改行だけは登録しない */
+    if (strcmp(client_name, "\n") == 0) {
+        /* もう一度名前登録用のプロンプトを送信 */
+        Send(Client[client_id].sock, SET_NAME_MESSAGE, strlen(SET_NAME_MESSAGE), 0);
+    } else {
+        char send_message[SEND_BUFLEN];
+        /* クライアント名から改行を除去 */
+        chop_nl(client_name);
+        /* クライアント名を登録 */
+        strncpy(Client[client_id].name, client_name, NAMELENGTH);
+        /* クライアント参加の通知を行う */
+        snprintf(send_message, SEND_BUFLEN, "%s connected.\n", client_name);
+        printf("%s", send_message);
+        send_chat_message(send_message, -1);
+    }
 }
 
 /* 全員に対してメッセージを送信する。 */
@@ -175,7 +196,7 @@ static void send_chat_message(char *message, int from_client) {
     snprintf(send_message, SEND_BUFLEN, "[%s]: %s\n", from_client_name, message);
     printf("%s", send_message);
 
-    for (client_id = 0; client_id < N_client; client_id++) {
+    for (client_id = 0; client_id < Max_client; client_id++) {
         /* 通信が確立している相手かチェックする */
         int sock = Client[client_id].sock;
         if (sock != -1) {
@@ -184,9 +205,29 @@ static void send_chat_message(char *message, int from_client) {
     }
 }
 
-/* Max_sdを更新する時はこの関数を使うようにする */
-void setMax_sd(int num) {
-    Max_sd = Max_sd < num ? num : Max_sd;
+static void handle_recv_data(int client_id, char *recv_buf, int strsize) {
+    /* クライアントが切断したか確認する */
+    /* 切断された時はRecvから0が返ってくる */
+    if (strsize == 0) {
+        client_exit(client_id);
+    }
+    /* メッセージを受信した時 */
+    /* 名前がセットされていない時、そのメッセージは名前登録として扱う */
+    else if (strlen(Client[client_id].name) == 0) {
+        set_client_name(recv_buf, client_id);
+    }
+    /* 名前がセットされていた時、それはチャットメッセージとして扱う */
+    else {
+        /* 全員に対してメッセージを送信する */
+        send_chat_message(recv_buf, client_id);
+    }
+}
+
+/* Max_sdの値は常に最大値を取るようにする*/
+static void setMax_sd(int num) {
+    if (num > Max_sd) {
+        Max_sd = num;
+    }
 }
 
 /* 改行除去 */
