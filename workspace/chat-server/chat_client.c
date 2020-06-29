@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/select.h>
+#include <unistd.h>
 
 #include "chat.h"
 #include "mynet.h"
@@ -36,14 +37,22 @@ void chat_client(char *servername, int port_number) {
             fgets(s_buf, S_BUFSIZE, stdin);
             strsize = strlen(s_buf);
             Send(sock, s_buf, strsize, 0);
+            return;
         }
 
         if (FD_ISSET(sock, &readfds)) {
             /* サーバから文字列を受信する */
             strsize = Recv(sock, r_buf, R_BUFSIZE - 1, 0);
-            r_buf[strsize] = '\0';
-            printf("%s", r_buf);
-            fflush(stdout); /* バッファの内容を強制的に出力 */
+            /* サーバから切断されたら */
+            if (strsize == 0) {
+                printf("Chat-Server is down.\n");
+                close(sock);
+                return;
+            } else {
+                r_buf[strsize] = '\0';
+                printf("%s", r_buf);
+                fflush(stdout); /* バッファの内容を強制的に出力 */
+            }
         }
     }
 }
