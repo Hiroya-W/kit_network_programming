@@ -16,5 +16,41 @@
    "chat.c"
   ],
   "file": "chat.c"
+ },
+ {
+  "directory": "/home/hiroya/Documents/Latex/kit/network_programming/workspace/chat-server",
+  "arguments": [
+   "gcc",
+   "-I",
+   "../mynet",
+   "-L",
+   "../mynet",
+   "-W",
+   "-Wall",
+   "-g",
+   "-c",
+   "-o",
+   "chat_client.o",
+   "chat_client.c"
+  ],
+  "file": "chat_client.c"
+ },
+ {
+  "directory": "/home/hiroya/Documents/Latex/kit/network_programming/workspace/chat-server",
+  "arguments": [
+   "gcc",
+   "-I",
+   "../mynet",
+   "-L",
+   "../mynet",
+   "-W",
+   "-Wall",
+   "-g",
+   "-c",
+   "-o",
+   "chat_common.o",
+   "chat_common.c"
+  ],
+  "file": "chat_common.c"
  }
 ]
