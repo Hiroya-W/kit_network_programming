@@ -3,7 +3,7 @@
 #
 CC = gcc
 MYLIBDIR =../mynet
-MYLIB =-lmynet 
+MYLIB =-lmynet -lncurses
 CFLAGS =-I ${MYLIBDIR} -L ${MYLIBDIR} -W -Wall -g
 OBJS = chat.o chat_client.o chat_server.o chat_common.o
 
