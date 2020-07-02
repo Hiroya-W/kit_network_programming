@@ -1,0 +1,110 @@
+[
+ {
+  "directory": "/home/hiroya/Documents/Latex/kit/network_programming/workspace/quiz",
+  "arguments": [
+   "gcc",
+   "-I",
+   "../mynet",
+   "-L",
+   "../mynet",
+   "-W",
+   "-Wall",
+   "-g",
+   "-c",
+   "-o",
+   "quiz.o",
+   "quiz.c"
+  ],
+  "file": "quiz.c"
+ },
+ {
+  "directory": "/home/hiroya/Documents/Latex/kit/network_programming/workspace/quiz",
+  "arguments": [
+   "gcc",
+   "-I",
+   "../mynet",
+   "-L",
+   "../mynet",
+   "-W",
+   "-Wall",
+   "-g",
+   "-c",
+   "-o",
+   "quiz_client.o",
+   "quiz_client.c"
+  ],
+  "file": "quiz_client.c"
+ },
+ {
+  "directory": "/home/hiroya/Documents/Latex/kit/network_programming/workspace/quiz",
+  "arguments": [
+   "gcc",
+   "-I",
+   "../mynet",
+   "-L",
+   "../mynet",
+   "-W",
+   "-Wall",
+   "-g",
+   "-c",
+   "-o",
+   "quiz_common.o",
+   "quiz_common.c"
+  ],
+  "file": "quiz_common.c"
+ },
+ {
+  "directory": "/home/hiroya/Documents/Latex/kit/network_programming/workspace/quiz",
+  "arguments": [
+   "gcc",
+   "-I",
+   "../mynet",
+   "-L",
+   "../mynet",
+   "-W",
+   "-Wall",
+   "-g",
+   "-c",
+   "-o",
+   "quiz_server.o",
+   "quiz_server.c"
+  ],
+  "file": "quiz_server.c"
+ },
+ {
+  "directory": "/home/hiroya/Documents/Latex/kit/network_programming/workspace/quiz",
+  "arguments": [
+   "gcc",
+   "-I",
+   "../mynet",
+   "-L",
+   "../mynet",
+   "-W",
+   "-Wall",
+   "-g",
+   "-c",
+   "-o",
+   "quiz_util.o",
+   "quiz_util.c"
+  ],
+  "file": "quiz_util.c"
+ },
+ {
+  "directory": "/home/hiroya/Documents/Latex/kit/network_programming/workspace/quiz",
+  "arguments": [
+   "gcc",
+   "-I",
+   "../mynet",
+   "-L",
+   "../mynet",
+   "-W",
+   "-Wall",
+   "-g",
+   "-c",
+   "-o",
+   "question.o",
+   "question.c"
+  ],
+  "file": "question.c"
+ }
+]
