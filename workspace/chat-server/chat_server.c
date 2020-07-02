@@ -11,7 +11,7 @@
 #include "mynet.h"
 
 #define NAMELENGTH 20   /* ログイン名の長さ制限 */
-#define BUFLEN 500      /* 通信バッファサイズ */
+#define RECV_BUFLEN 500 /* 通信バッファサイズ */
 #define SEND_BUFLEN 600 /* 通信バッファサイズ */
 
 /* 各クライアントのユーザ情報を格納する構造体の定義 */
@@ -20,14 +20,12 @@ typedef struct {
     char name[NAMELENGTH];
 } client_info;
 
-/* プライベート変数 */
 static int Max_client;      /* クライアントの数 */
 static client_info *Client; /* クライアントの情報 */
 static int Max_sd = 0;      /* ディスクリプタ最大値 */
 static int Cnt_client = 0;  /* 現在のクライアントの接続数 */
 static char SET_NAME_MESSAGE[] = "Input your name: ";
 
-/* プライベート関数 */
 static void init_client(int n_client);
 static int client_join(int client_id, int sock_listen);
 static void client_exit(int client_id);
@@ -85,11 +83,11 @@ void chat_server(int port_number, int n_client) {
             if (CLIENT_SOCK == -1) {
                 continue;
             }
-            /* 接続しているクライアントに対しての処理 */
+            /* 接続しているクライアントからのメッセージに対しての処理 */
             if (FD_ISSET(CLIENT_SOCK, &readfds)) {
-                char recv_buf[BUFLEN]; /* 通信用バッファ */
+                char recv_buf[RECV_BUFLEN]; /* 通信用バッファ */
                 /* クライアントからデータが届いているので受信する */
-                int strsize = Recv(Client[client_id].sock, recv_buf, BUFLEN - 1, 0);
+                int strsize = Recv(Client[client_id].sock, recv_buf, RECV_BUFLEN - 1, 0);
                 recv_buf[strsize] = '\0';
 
                 /* メッセージ内容に合わせて処理する */
@@ -180,7 +178,7 @@ static void set_client_name(char *client_name, int client_id) {
     }
 }
 
-/* 全員に対してメッセージを送信する。 */
+/* 送信者以外に対してメッセージを送信する。 */
 static void send_chat_message(char *message, int from_client) {
     int client_id;
     char send_message[SEND_BUFLEN];
@@ -197,14 +195,15 @@ static void send_chat_message(char *message, int from_client) {
     printf("%s", send_message);
 
     for (client_id = 0; client_id < Max_client; client_id++) {
-        /* 通信が確立している相手かチェックする */
+        /* 通信が確立している相手かつ、送信者以外に送信する */
         int sock = Client[client_id].sock;
-        if (sock != -1) {
+        if (sock != -1 && client_id != from_client) {
             Send(sock, send_message, strlen(send_message), 0);
         }
     }
 }
 
+/* メッセージ内容に合わせて処理する */
 static void handle_recv_data(int client_id, char *recv_buf, int strsize) {
     /* クライアントが切断したか確認する */
     /* 切断された時はRecvから0が返ってくる */
@@ -218,7 +217,7 @@ static void handle_recv_data(int client_id, char *recv_buf, int strsize) {
     }
     /* 名前がセットされていた時、それはチャットメッセージとして扱う */
     else {
-        /* 全員に対してメッセージを送信する */
+        /* 送信者以外に対してメッセージを送信する */
         send_chat_message(recv_buf, client_id);
     }
 }

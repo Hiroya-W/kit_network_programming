@@ -81,6 +81,7 @@ int main(int argc, char *argv[]) {
     exit(EXIT_SUCCESS);
 }
 
+/* helpを表示する */
 void help_message(char *script_name) {
     fprintf(stderr, "USAGE:\n");
     fprintf(stderr, "    %s [OPTIONS]\n\n", script_name);
@@ -88,7 +89,7 @@ void help_message(char *script_name) {
 
     fprintf(stderr, "OPTIONS:\n");
     fprintf(stderr, "    -S, \t\t Run Chat-Server mode\n");
-    fprintf(stderr, "    -C, \t\t Run Chat-Client mode\n");
+    fprintf(stderr, "    -C, \t\t Run Chat-Client mode(defalut)\n");
     fprintf(stderr, "    -p, <number> \t Set port number [default: 50000]\n");
     fprintf(stderr, "\n");
 
