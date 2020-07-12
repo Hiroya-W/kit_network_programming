@@ -1,0 +1,36 @@
+[
+ {
+  "directory": "/home/hiroya/Documents/Latex/kit/network_programming/workspace/udp_echo",
+  "arguments": [
+   "gcc",
+   "-I",
+   "../mynet",
+   "-L",
+   "../mynet",
+   "-W",
+   "-Wall",
+   "-c",
+   "-o",
+   "udp_client.o",
+   "udp_client.c"
+  ],
+  "file": "udp_client.c"
+ },
+ {
+  "directory": "/home/hiroya/Documents/Latex/kit/network_programming/workspace/udp_echo",
+  "arguments": [
+   "gcc",
+   "-I",
+   "../mynet",
+   "-L",
+   "../mynet",
+   "-W",
+   "-Wall",
+   "-c",
+   "-o",
+   "udp_server.o",
+   "udp_server.c"
+  ],
+  "file": "udp_server.c"
+ }
+]
