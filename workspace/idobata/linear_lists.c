@@ -8,11 +8,12 @@ member_t head = NULL;
 member_t tail = NULL;
 
 member_t create_member();
+member_t get_head_from_list();
 void add_node_to_list(char *username, int sock);
 void delete_node_from_list(int sock);
 void print_list();
 
-int main() {
+int test() {
     add_node_to_list("HIRO\0", 1);
     add_node_to_list("RYO\0", 2);
     add_node_to_list("MAHO\0", 3);
@@ -26,6 +27,10 @@ int main() {
     delete_node_from_list(3);
     print_list();
     return 0;
+}
+
+member_t get_head_from_list() {
+    return head;
 }
 
 /* 線形リストの実装

@@ -15,6 +15,12 @@ typedef struct _idobata {
     char data[488]; /* データ部分(メッセージ本体) */
 } ido_packet;
 
+/* メンバーの線形リストの先頭を取得する */
+member_t get_head_from_list();
+member_t create_member();
+void add_node_to_list(char *username, int sock);
+/* メンバーを線形リストに追加する */
+void add_node_to_list(char *username, int sock);
 /* サーバーが既にあるか検索する */
 int search_server(int port_num);
 /* サーバーを起動する */
