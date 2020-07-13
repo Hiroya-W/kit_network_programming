@@ -50,6 +50,10 @@ int main(int argc, char *argv[]) {
         help_message(argv[0]);
         exit(EXIT_FAILURE);
     }
+    if (search_server(port_number)) {
+    } else {
+        idobata_server(port_number);
+    }
 
     exit(EXIT_SUCCESS);
 }

@@ -6,7 +6,7 @@ MYLIBDIR =../mynet
 MYLIB =-lmynet -lncursesw
 CFLAGS =-I ${MYLIBDIR} -L ${MYLIBDIR} -W -Wall -g
 # OBJS = chat.o chat_client.o chat_server.o chat_common.o
-OBJS = idobata.o 
+OBJS = idobata.o packet.o 
 
 all: idobata linear_lists
 
