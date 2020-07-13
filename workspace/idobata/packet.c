@@ -1,5 +1,7 @@
 #include <arpa/inet.h>
 #include <asm-generic/socket.h>
+#include <locale.h>
+#include <ncurses.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <stdio.h>
@@ -26,6 +28,8 @@
 
 #define TIMEOUT_SEC 2
 
+#define SUBWIN_LINES 5 /* サブウィンドウの行数 */
+
 static char Buffer[MSGBUF_SIZE];
 char server_addr[20];
 static int Max_sd = 0; /* ディスクリプタ最大値 */
@@ -36,10 +40,15 @@ void send_packet(member_t user);
 int idobata_server(int port_number);
 
 void show_adrsinfo(struct sockaddr_in *adrs_in);
+void join_message(char *username);
+void send_message(char *message, char *username, int sock_from);
 
 unsigned int analyze_header(char *header);
 
 static void setMax_sd(int num);
+
+static void init_color_pair();
+static void create_window(WINDOW **win_main, WINDOW **win_sub);
 
 /*
   パケットの種類=type のパケットを作成する
@@ -207,6 +216,7 @@ int idobata_server(int port_number) {
 
             /* クライアントとの通信を確認するため、ビットマスクをセット */
             FD_SET(sock_accepted, &mask);
+            setMax_sd(sock_accepted);
         } else {
             // 特定のユーザからメッセージが届いている
             member_t current = get_head_from_list();
@@ -226,6 +236,7 @@ int idobata_server(int port_number) {
                         if (analyze_header(packet->header) == JOIN) {
                             // 名前を設定する
                             snprintf(current->username, USERNAME_LEN, "%s", packet->data);
+                            join_message(current->username);
                         }
                         // JOIN以外は受け付けない
                     }
@@ -270,6 +281,14 @@ int idobata_server(int port_number) {
     close(udp_sock);
 
     exit(EXIT_SUCCESS);
+}
+
+void join_message(char *username) {
+    char username_message[MSGBUF_SIZE];
+    // ユーザ名を付加したメッセージを生成
+    snprintf(username_message, MSGBUF_SIZE, "%s が参加しました", username);
+    printf("%s\n", username_message);
+    send_message(username_message, "Server", -1);
 }
 
 void send_message(char *message, char *username, int sock_from) {
@@ -325,4 +344,148 @@ static void setMax_sd(int num) {
     if (num > Max_sd) {
         Max_sd = num;
     }
+}
+
+void idobata_client(int port_number) {
+    int sock;
+    char s_buf[488], r_buf[488];
+    fd_set mask, readfds;
+
+    WINDOW *win_main, *win_sub;
+
+    /* Windowを作る */
+    create_window(&win_main, &win_sub);
+
+    /* サーバに接続する */
+    sock = init_tcpclient(server_addr, port_number);
+    wprintw(win_main, "Mode: Client\n");
+    wprintw(win_main, "Connected.\n");
+
+    /* ビットマスクの準備 */
+    FD_ZERO(&mask);
+    FD_SET(0, &mask);
+    FD_SET(sock, &mask);
+
+    /* メインループ */
+    while (1) {
+        wrefresh(win_main);
+        wrefresh(win_sub);
+        /* 受信データの有無をチェック */
+        readfds = mask;
+        select(sock + 1, &readfds, NULL, NULL, NULL);
+
+        /* キーボードからの入力があった時 */
+        if (FD_ISSET(0, &readfds)) {
+            int strsize;
+            int num_jp;
+            char buf[512];
+            /* サブウィンドウでキーボードから文字列を入力する */
+            wgetnstr(win_sub, s_buf, 488 - 2);
+            strsize = strlen(s_buf);
+            /* 改行を追加する */
+            s_buf[strsize] = '\n';
+            s_buf[strsize + 1] = '\0';
+            Send(sock, s_buf, strsize + 1, 0);
+
+            /* 入力用のプロンプトを表示する */
+            wprintw(win_sub, "> ");
+
+            /* 自分にもメッセージを表示する */
+            /* 日本語の文字数を数える */
+            num_jp = cnt_jp(s_buf);
+            snprintf(buf, MSGBUF_SIZE, "[You]: %s", s_buf);
+            /* 右寄せで表示する */
+            wattron(win_main, COLOR_PAIR(COL_GRN_WHT));
+            wprintw(win_main, "%*s\n", COLS + num_jp, buf);
+            wattroff(win_main, COLOR_PAIR(COL_GRN_WHT));
+        }
+
+        /* Chat-Serverからメッセージを受信した時 */
+        if (FD_ISSET(sock, &readfds)) {
+            /* サーバから文字列を受信する */
+            int strsize = Recv(sock, r_buf, MSGBUF_SIZE - 1, 0);
+            /* サーバから切断されたら */
+            if (strsize == 0) {
+                wprintw(win_main, "Chat-Server is down.\nDisconnected.\nPress Any key to exit.");
+                wrefresh(win_main);
+                close(sock);
+                /* 何かのキー入力を待つ */
+                wgetch(win_sub);
+                return;
+            }
+            r_buf[strsize] = '\0';
+            /* 通常はwin_mainに出力 */
+            wattron(win_main, COLOR_PAIR(COL_CYN_WHT));
+            wprintw(win_main, r_buf);
+            wattroff(win_main, COLOR_PAIR(COL_CYN_WHT));
+        }
+    }
+}
+
+/* WINDOWを作成 */
+static void create_window(WINDOW **win_main, WINDOW **win_sub) {
+    /* 日本語を表示できるように */
+    /* initする前に書く */
+    setlocale(LC_ALL, "");
+
+    /* 画面の初期化 */
+    if (initscr() == NULL) {
+        exit_errmesg("initscr()");
+    }
+
+    /* カラーが使えるか確認する */
+    if (has_colors() == FALSE) {
+        endwin();
+        exit_errmesg("Terminal does not support color.");
+    }
+
+    *win_main = newwin(LINES - SUBWIN_LINES, COLS, 0, 0);
+    if (*win_main == NULL) {
+        exit_errmesg("newwin()");
+    }
+
+    *win_sub = newwin(SUBWIN_LINES, COLS, LINES - SUBWIN_LINES, 0);
+    if (*win_sub == NULL) {
+        exit_errmesg("newwin()");
+    }
+
+    /* 文字色を付けられるように */
+    start_color();
+    /* 端末デフォルトの文字色と背景色を-1でアクセスできるようにする */
+    use_default_colors();
+    init_color_pair();
+
+    /* 背景色を設定 */
+    wbkgd(*win_main, COLOR_PAIR(COL_BLK_WHT));
+    wbkgd(*win_sub, COLOR_PAIR(COL_BLK_WHT));
+    /* 画面を更新 */
+    wrefresh(*win_main);
+    wrefresh(*win_sub);
+    /* スクロールを許可する */
+    scrollok(*win_main, TRUE);
+    scrollok(*win_sub, TRUE);
+
+    return;
+}
+
+/* Color pairの定義 */
+static void init_color_pair() {
+    init_pair(COL_BLK_WHT, COLOR_BLACK, COLOR_WHITE);
+    init_pair(COL_GRN_WHT, COLOR_GREEN, COLOR_WHITE);
+    init_pair(COL_CYN_WHT, COLOR_CYAN, COLOR_WHITE);
+}
+
+/* 日本語の出現回数をカウントする関数 */
+int cnt_jp(char *str) {
+    /* UTF8で日本語は3バイト */
+    /* 2byte目移行なら (*str & 0xC0) == 0x80 となる */
+    /* 結果的に日本語のときにだけcountが2増える */
+    int count = 0;
+    while (*str != '\0') {
+        if ((*str & 0xC0) == 0x80) {
+            count++;
+        }
+        str++;
+    }
+    return count / 2;
 }

@@ -1,6 +1,11 @@
 #ifndef IDOBATA_H
 #define IDOBATA_H
 
+/* Color pair */
+#define COL_BLK_WHT 1
+#define COL_GRN_WHT 2
+#define COL_CYN_WHT 3
+
 #define USERNAME_LEN 15 /* サーバ名格納用バッファサイズ */
 
 typedef struct _imember {
@@ -25,5 +30,10 @@ void add_node_to_list(char *username, int sock);
 int search_server(int port_num);
 /* サーバーを起動する */
 int idobata_server(int port_number);
+/* クライアントを起動する */
+void idobata_client(int port_number);
+
+/* 日本語の出現回数をカウントする関数 */
+int cnt_jp(char *str);
 
 #endif
