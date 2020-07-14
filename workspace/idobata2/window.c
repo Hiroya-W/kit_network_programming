@@ -1,8 +1,6 @@
 /*
  * window.c
  */
-#include <locale.h>
-#include <ncurses.h>
 #include <stdio.h>
 #include <stdlib.h>
 
