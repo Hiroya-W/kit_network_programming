@@ -9,7 +9,23 @@
 #define COL_GRN_WHT 2
 #define COL_CYN_WHT 3
 
-#define USERNAME_LEN 15 /* サーバ名格納用バッファサイズ */
+/* Packet Type */
+#define HELLO 1
+#define HERE 2
+#define JOIN 3
+#define POST 4
+#define MESSAGE 5
+#define QUIT 6
+
+/* UDP通信でタイムアウトを使用する */
+#define TIMEOUT_SEC 2
+
+/* メッセージ全体のサイズは512バイト */
+#define MSGBUF_SIZE 512
+/* パケット内においてデータが入る部分は488バイト */
+#define MSGDATA_SIZE 488
+/* サーバ名格納用バッファサイズ */
+#define USERNAME_LEN 15
 
 /* ウィンドウを作成する */
 void create_window(WINDOW **win_main, WINDOW **win_sub);
