@@ -6,18 +6,12 @@
 #include "mynet.h"
 
 static WINDOW *win_main, *win_sub;
+static void init(int port_number, int *sock);
 
 void idobata_client(int port_number) {
     int sock;
     fd_set mask, readfds;
-
-    /* Windowを作成 */
-    create_window(&win_main, &win_sub);
-    wprintw(win_main, "クライアントモードで起動しました。\n");
-    /* クライアント用の初期設定を行う*/
-    sock = join_server(port_number);
-    /* 画面更新 */
-    wprintw(win_main, "サーバーに参加しました。\n");
+    init(port_number, &sock);
 
     /* ビットマスクの準備 */
     FD_ZERO(&mask);
@@ -45,6 +39,16 @@ void idobata_client(int port_number) {
             wprintw(win_sub, "> ");
         }
     }
+}
+
+static void init(int port_number, int *sock) {
+    /* Windowを作成 */
+    create_window(&win_main, &win_sub);
+    wprintw(win_main, "クライアントモードで起動しました。\n");
+    /* クライアント用の初期設定を行う*/
+    *sock = join_server(port_number);
+    wprintw(win_main, "サーバーに参加しました。\n");
+    wprintw(win_sub, "> ");
 }
 
 /* サーバーに参加する */
