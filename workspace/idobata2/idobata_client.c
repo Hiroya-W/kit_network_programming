@@ -6,8 +6,6 @@
 
 static WINDOW *win_main, *win_sub;
 
-int join_server(int port_number);
-
 void idobata_client(int port_number) {
     int sock;
     /* Windowを作成 */
