@@ -1,9 +1,15 @@
 #include <curses.h>
+#include <ncurses.h>
+#include <stdio.h>
 #include <string.h>
 #include <sys/select.h>
+#include <unistd.h>
 
 #include "idobata.h"
 #include "mynet.h"
+
+/* メッセージ送信者がサーバーの時にsockに渡す値 */
+#define FROM_SERVER -1
 
 /* Window */
 static WINDOW *win_main, *win_sub;
@@ -12,6 +18,10 @@ static int Max_sd = 0;
 
 static void init(int port_number, int *server_udp_sock, int *server_tcp_sock, int *client_tcp_sock);
 static void recv_udp_packet(int udp_sock);
+static void recv_msg_from_client(fd_set *readfds);
+static void delete_user(int sock);
+static void register_username(member_t user, ido_packet_t *packet);
+static void transfer_message(char *message, char *from_user_name, int from_sock);
 static void setMax_sd(int num);
 
 void idobata_server(int port_number) {
@@ -25,9 +35,9 @@ void idobata_server(int port_number) {
     /* ビットマスクの準備 */
     FD_ZERO(&mask);
     FD_SET(0, &mask);
-    // FD_SET(server_udp_sock, &mask);
-    // FD_SET(server_tcp_sock, &mask);
-    // FD_SET(client_tcp_sock, &mask);
+    FD_SET(server_udp_sock, &mask);
+    FD_SET(server_tcp_sock, &mask);
+    FD_SET(client_tcp_sock, &mask);
 
     /* メインループ */
     while (1) {
@@ -76,7 +86,10 @@ void idobata_server(int port_number) {
             }
             r_buf[strsize] = '\0';
             show_others_msg(win_main, r_buf);
-        } else {
+        }
+        /* サーバーがクライアントからメッセージを受け取った時 */
+        else {
+            recv_msg_from_client(&readfds);
         }
     }
 }
@@ -117,7 +130,7 @@ static void recv_udp_packet(int udp_sock) {
     from_len = sizeof(from_adrs);
     strsize = Recvfrom(udp_sock, r_buf, MSGBUF_SIZE, 0, (struct sockaddr *)&from_adrs, &from_len);
 
-    show_adrsinfo((struct sockaddr_in *)&from_adrs);
+    // show_adrsinfo((struct sockaddr_in *)&from_adrs);
 
     packet = (ido_packet_t *)r_buf; /* packetがバッファの先頭を指すようにする */
     /* HELLOパケット以外は受け取らない */
@@ -125,12 +138,103 @@ static void recv_udp_packet(int udp_sock) {
         return;
     }
     /* 文字列をクライアントに送信する */
-    /* HELOパケットを作成 */
-    create_packet(s_buf, HELLO, "");
+    /* HEREパケットを作成 */
+    create_packet(s_buf, HERE, "");
     strsize = strlen(s_buf);
 
     /* HEREパケットをを送信者に送信する */
     Sendto(udp_sock, s_buf, strsize, 0, (struct sockaddr *)&from_adrs, sizeof(from_adrs));
+}
+
+static void recv_msg_from_client(fd_set *readfds) {
+    char r_buf[MSGBUF_SIZE];
+    int strsize;
+    // 特定のユーザからメッセージが届いている
+    member_t current = get_head_from_list();
+    // 全メンバーのsockを確認する
+    while (current != NULL) {
+        int client_sock = current->sock;
+        ido_packet_t *packet;
+        /* このユーザからはメッセージが届いていないのでスキップ */
+        if (FD_ISSET(client_sock, readfds)) {
+            current = current->next;
+            continue;
+        }
+        // このユーザから受信する
+        strsize = Recv(client_sock, r_buf, MSGBUF_SIZE - 1, 0);
+        r_buf[strsize] = '\0';
+        packet = (ido_packet_t *)r_buf;
+
+        // 切断された時
+        if (strsize == 0) {
+            delete_user(current->sock);
+            current = current->next;
+            continue;
+        }
+
+        // 名前が未設定->まだ参加していない
+        if (strlen(current->username) == 0) {
+            /* 名前を登録する */
+            register_username(current, packet);
+            current = current->next;
+            continue;
+        }
+
+        // ヘッダで分岐させる
+        // ここに来るメッセージはPOSTかQUITしか無い
+        switch (analyze_header(packet->header)) {
+            case POST:
+                // メッセージを転送する
+                transfer_message(packet->data, current->username, current->sock);
+                break;
+            case QUIT:
+                // ユーザの登録情報を削除する
+                delete_user(current->sock);
+                break;
+            default:
+                break;
+        }
+        current = current->next;
+    }
+}
+
+static void register_username(member_t user, ido_packet_t *packet) {
+    char message[MSGDATA_SIZE];
+    /* JOINパケットだったら登録する */
+    if (analyze_header(packet->header) == JOIN) {
+        // 名前を登録する
+        snprintf(user->username, USERNAME_LEN, "%s", packet->data);
+        // ユーザが参加したことを知らせるメッセージを送信する
+        snprintf(message, MSGDATA_SIZE, "%sが参加しました\n", user->username);
+        transfer_message(message, "Server", FROM_SERVER);
+    }
+}
+
+static void delete_user(int sock) {
+    delete_user_from_list(sock);
+    close(sock);
+}
+
+/* メッセージを転送する */
+/* 誰からのメッセージかをfrom_user_nameに格納 */
+/* 送信者以外に転送するので、送信者をfrom_sockで識別する */
+static void transfer_message(char *message, char *from_user_name, int from_sock) {
+    char s_buf[MSGBUF_SIZE];
+    char name_p_message[MSGDATA_SIZE];
+    // ユーザ名を付加したメッセージを生成
+    snprintf(name_p_message, MSGDATA_SIZE, "[%s]%s", from_user_name, message);
+
+    // MESSAGEパケットを作成する
+    create_packet(s_buf, MESSAGE, name_p_message);
+
+    member_t current = get_head_from_list();
+    while (current != NULL) {
+        // メッセージの送信者以外に送信する
+        if (current->sock != from_sock) {
+            Send(current->sock, s_buf, MSGBUF_SIZE, 0);
+        }
+        current = current->next;
+    }
 }
 
 /* Max_sdの値は常に最大値を取るようにする*/
