@@ -26,9 +26,9 @@ void idobata_server(int port_number) {
     /* ビットマスクの準備 */
     FD_ZERO(&mask);
     FD_SET(0, &mask);
-    FD_SET(server_udp_sock, &mask);
-    FD_SET(server_tcp_sock, &mask);
-    FD_SET(client_tcp_sock, &mask);
+    // FD_SET(server_udp_sock, &mask);
+    // FD_SET(server_tcp_sock, &mask);
+    // FD_SET(client_tcp_sock, &mask);
 
     /* メインループ */
     while (1) {
@@ -41,6 +41,9 @@ void idobata_server(int port_number) {
         /* キーボードからの入力があった時 */
         if (FD_ISSET(0, &readfds)) {
             char p_buf[MSGBUF_SIZE];
+            /* サブウィンドウでキーボードから文字列を入力する */
+            /* 入力出来る文字は488バイトで、うち2バイトは改行とヌル文字にする */
+            wgetnstr(win_sub, p_buf, MSGDATA_SIZE - 2);
             send_msg_from_keyboard(client_tcp_sock, p_buf);
             show_your_msg(win_main, p_buf);
             /* 入力用のプロンプトを表示する */

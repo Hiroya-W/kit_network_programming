@@ -36,6 +36,9 @@ void idobata_client(int port_number) {
         /* キーボードからの入力があった時 */
         if (FD_ISSET(0, &readfds)) {
             char p_buf[MSGBUF_SIZE];
+            /* サブウィンドウでキーボードから文字列を入力する */
+            /* 入力出来る文字は488バイトで、うち2バイトは改行とヌル文字にする */
+            wgetnstr(win_sub, p_buf, MSGDATA_SIZE - 2);
             send_msg_from_keyboard(sock, p_buf);
             show_your_msg(win_main, p_buf);
             /* 入力用のプロンプトを表示する */
@@ -68,15 +71,11 @@ int join_server(int port_number) {
 void send_msg_from_keyboard(int sock, char *p_buf) {
     int strsize;
     char s_buf[MSGBUF_SIZE];
-    /* サブウィンドウでキーボードから文字列を入力する */
-    /* 入力出来る文字は488バイトで、うち2バイトは改行とヌル文字にする */
-    wgetnstr(win_sub, p_buf, MSGDATA_SIZE - 2);
     strsize = strlen(p_buf);
     /* 改行を追加する */
     p_buf[strsize] = '\n';
     p_buf[strsize + 1] = '\0';
     snprintf(s_buf, MSGDATA_SIZE, "%s", p_buf);
-
     /* MESSAGE パケットを作成する */
     create_packet(s_buf, MESSAGE, s_buf);
     strsize = strlen(s_buf);
