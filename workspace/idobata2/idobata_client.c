@@ -1,6 +1,7 @@
 #include <curses.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/select.h>
 
 #include "idobata.h"
 #include "mynet.h"
@@ -38,6 +39,21 @@ void idobata_client(int port_number) {
             /* 入力用のプロンプトを表示する */
             wprintw(win_sub, "> ");
         }
+        /* サーバーからメッセージを受け取った時 */
+        else if (FD_ISSET(sock, &readfds)) {
+            char r_buf[MSGBUF_SIZE];
+            int strsize = Recv(sock, r_buf, MSGBUF_SIZE - 1, 0);
+            if (strsize == 0) {
+                wprintw(win_main, "井戸端サーバーが終了しました。\nキー入力でクライアントを終了します。\n");
+                wrefresh(win_main);
+                close(sock);
+                /* 何かのキー入力を待つ */
+                wgetch(win_sub);
+                return;
+            }
+            r_buf[strsize] = '\0';
+            show_others_msg(win_main, r_buf);
+        }
     }
 }
 
@@ -71,7 +87,7 @@ int join_server(int port_number) {
     return sock;
 }
 
-/* キーボードから入力を受け取り、送信する */
+/* キーボード入力されたメッセージを送信する */
 void send_msg_from_keyboard(int sock, char *p_buf) {
     int strsize;
     char s_buf[MSGBUF_SIZE];
@@ -85,4 +101,15 @@ void send_msg_from_keyboard(int sock, char *p_buf) {
     strsize = strlen(s_buf);
     /* 送信 */
     Send(sock, s_buf, strsize, 0);
+}
+
+int recv_msg_from_server(int sock, char *buf) {
+    /* サーバーから文字列を受信する */
+    int strsize = Recv(sock, buf, MSGBUF_SIZE - 1, 0);
+    /* サーバから切断されたら */
+    if (strsize == 0) {
+        return -1;
+    }
+    buf[strsize] = '\0';
+    return 0;
 }

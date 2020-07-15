@@ -75,6 +75,8 @@ unsigned int analyze_header(char *header);
 void show_adrsinfo(struct sockaddr_in *adrs_in);
 /* 自分が送信したメッセージを表示する */
 void show_your_msg(WINDOW *win, char *buf);
+/* 他の人の送信したメッセージを表示する */
+void show_others_msg(WINDOW *win, char *buf);
 /* 日本語の出現回数をカウントする関数 */
 int cnt_jp(char *str);
 
@@ -91,7 +93,7 @@ void idobata_server(int port_number);
 void idobata_client(int port_number);
 /* サーバーに参加する */
 int join_server(int port_number);
-/* キーボードから入力を受け取り、送信する */
+/* キーボード入力されたメッセージを送信する */
 void send_msg_from_keyboard(int sock, char *p_buf);
 
 // =============================================

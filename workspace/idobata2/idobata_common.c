@@ -2,6 +2,7 @@
  * idobata_common.c
  */
 
+#include <ncurses.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -134,6 +135,13 @@ void show_your_msg(WINDOW *win, char *buf) {
     wattron(win, COLOR_PAIR(COL_GRN_WHT));
     wprintw(win, "%*s\n", COLS + num_jp, p_buf);
     wattroff(win, COLOR_PAIR(COL_GRN_WHT));
+}
+
+/* 他の人の送信したメッセージを表示する */
+void show_others_msg(WINDOW *win, char *buf) {
+    wattron(win, COLOR_PAIR(COL_CYN_WHT));
+    wprintw(win, buf);
+    wattron(win, COLOR_PAIR(COL_CYN_WHT));
 }
 
 /* 日本語の出現回数をカウントする関数 */
