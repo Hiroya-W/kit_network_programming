@@ -39,6 +39,11 @@ void create_window(WINDOW **win_main, WINDOW **win_sub);
 //  idobata_common.c
 // =============================================
 
+/* サーバーアドレスを格納する */
+void set_server_addr(char *addr);
+
+/* 格納されているサーバーアドレスを取得する */
+void get_server_addr(char *out);
 /*
   パケットの種類=type のパケットを作成する
   パケットのデータは 内部的なバッファ(Buffer)に作成される
