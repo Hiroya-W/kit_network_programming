@@ -96,8 +96,8 @@ void send_msg_from_keyboard(int sock, char *p_buf) {
     p_buf[strsize] = '\n';
     p_buf[strsize + 1] = '\0';
     snprintf(s_buf, MSGDATA_SIZE, "%s", p_buf);
-    /* MESSAGE パケットを作成する */
-    create_packet(s_buf, MESSAGE, s_buf);
+    /* POST パケットを作成する */
+    create_packet(s_buf, POST, s_buf);
     strsize = strlen(s_buf);
     /* 送信 */
     Send(sock, s_buf, strsize, 0);
