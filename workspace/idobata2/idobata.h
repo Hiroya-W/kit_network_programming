@@ -31,6 +31,12 @@
 /* サーバ名格納用バッファサイズ */
 #define USERNAME_LEN 15
 
+typedef struct _imember {
+    char username[USERNAME_LEN]; /* ユーザ名 */
+    int sock;                    /* ソケット番号 */
+    struct _imember *next;       /* 次のユーザ */
+} * member_t;
+
 /* パケットの構造 */
 typedef struct _idobata {
     char header[4]; /* パケットのヘッダ部(4バイト) */
@@ -73,11 +79,25 @@ void show_adrsinfo(struct sockaddr_in *adrs_in);
 /* 日本語の出現回数をカウントする関数 */
 int cnt_jp(char *str);
 
-/* サーバーが既にあるか検索する */
-int search_server(int port_num);
+// =============================================
+//  idobata_server.c
+// =============================================
 /* サーバーを起動する */
 int idobata_server(int port_number);
+
+// =============================================
+//  idobata_client.c
+// =============================================
 /* クライアントを起動する */
 void idobata_client(int port_number);
 
+// =============================================
+//  linear_lists.c
+// =============================================
+/* 線形リストの先頭を取得する */
+member_t get_head_from_list();
+/* 線形リストにユーザを追加する */
+void add_user_to_list(char *username, int sock);
+/* 線形リストからユーザを削除する */
+void delete_user_from_list(int sock);
 #endif
