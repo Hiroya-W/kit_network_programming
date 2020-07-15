@@ -48,7 +48,7 @@ void create_window(WINDOW **win_main, WINDOW **win_sub);
 // =============================================
 //  idobata_common.c
 // =============================================
-
+int search_server(int port_number);
 /* サーバーアドレスを格納する */
 void set_server_addr(char *addr);
 
