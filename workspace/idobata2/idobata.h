@@ -5,6 +5,9 @@
 #include <locale.h>
 #include <ncurses.h>
 
+/* サーバー検索時の返り値 */
+#define SERVER_NOT_EXIST 0
+#define SERVER_EXIST 1
 /* Color pair */
 #define COL_BLK_WHT 1
 #define COL_GRN_WHT 2
@@ -27,6 +30,13 @@
 #define MSGDATA_SIZE 488
 /* サーバ名格納用バッファサイズ */
 #define USERNAME_LEN 15
+
+/* パケットの構造 */
+typedef struct _idobata {
+    char header[4]; /* パケットのヘッダ部(4バイト) */
+    char sep;       /* セパレータ(空白、またはゼロ) */
+    char data[488]; /* データ部分(メッセージ本体) */
+} ido_packet_t;
 
 // =============================================
 //  window.c
