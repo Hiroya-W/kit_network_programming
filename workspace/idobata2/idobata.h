@@ -92,6 +92,8 @@ void idobata_server(int port_number);
 void idobata_client(int port_number);
 /* サーバーに参加する */
 int join_server(int port_number);
+/* キーボードから入力を受け取り、送信する */
+void send_msg_from_keyboard(int sock);
 
 // =============================================
 //  linear_lists.c
