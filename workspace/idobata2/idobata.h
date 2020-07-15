@@ -69,13 +69,12 @@ void get_user_name(char *out);
   パケットのデータは 内部的なバッファ(Buffer)に作成される
 */
 void create_packet(char *Buffer, unsigned int type, char *message);
-
 /* パケットのタイプを解析する */
 unsigned int analyze_header(char *header);
-
 /* 格納されているアドレス情報を表示する */
 void show_adrsinfo(struct sockaddr_in *adrs_in);
-
+/* 自分が送信したメッセージを表示する */
+void show_your_msg(WINDOW *win, char *buf);
 /* 日本語の出現回数をカウントする関数 */
 int cnt_jp(char *str);
 
@@ -93,7 +92,7 @@ void idobata_client(int port_number);
 /* サーバーに参加する */
 int join_server(int port_number);
 /* キーボードから入力を受け取り、送信する */
-void send_msg_from_keyboard(int sock);
+void send_msg_from_keyboard(int sock, char *p_buf);
 
 // =============================================
 //  linear_lists.c

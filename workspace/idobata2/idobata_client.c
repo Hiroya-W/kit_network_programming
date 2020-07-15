@@ -26,6 +26,7 @@ void idobata_client(int port_number) {
 
     /* メインループ */
     while (1) {
+        /* 画面更新 */
         wrefresh(win_main);
         wrefresh(win_sub);
         /* 受信データの有無をチェック */
@@ -34,7 +35,11 @@ void idobata_client(int port_number) {
 
         /* キーボードからの入力があった時 */
         if (FD_ISSET(0, &readfds)) {
-            send_msg_from_keyboard(sock);
+            char p_buf[MSGBUF_SIZE];
+            send_msg_from_keyboard(sock, p_buf);
+            show_your_msg(win_main, p_buf);
+            /* 入力用のプロンプトを表示する */
+            wprintw(win_sub, "> ");
         }
     }
 }
@@ -60,10 +65,8 @@ int join_server(int port_number) {
 }
 
 /* キーボードから入力を受け取り、送信する */
-void send_msg_from_keyboard(int sock) {
+void send_msg_from_keyboard(int sock, char *p_buf) {
     int strsize;
-    int num_jp;
-    char p_buf[MSGBUF_SIZE];
     char s_buf[MSGBUF_SIZE];
     /* サブウィンドウでキーボードから文字列を入力する */
     /* 入力出来る文字は488バイトで、うち2バイトは改行とヌル文字にする */
@@ -79,16 +82,4 @@ void send_msg_from_keyboard(int sock) {
     strsize = strlen(s_buf);
     /* 送信 */
     Send(sock, s_buf, strsize, 0);
-
-    /* 入力用のプロンプトを表示する */
-    wprintw(win_sub, "> ");
-
-    /* 自分にもメッセージを表示する */
-    /* 日本語の文字数を数える */
-    num_jp = cnt_jp(p_buf);
-    snprintf(p_buf, MSGBUF_SIZE, "[You]: %s", p_buf);
-    /* 右寄せで表示する */
-    wattron(win_main, COLOR_PAIR(COL_GRN_WHT));
-    wprintw(win_main, "%*s\n", COLS + num_jp, p_buf);
-    wattroff(win_main, COLOR_PAIR(COL_GRN_WHT));
 }

@@ -124,6 +124,18 @@ void show_adrsinfo(struct sockaddr_in *adrs_in) {
     printf("%s[%d]\n", ip_adrs, port_number);
 }
 
+/* 自分が送信したメッセージを表示する */
+void show_your_msg(WINDOW *win, char *buf) {
+    char p_buf[MSGBUF_SIZE + 10];
+    /* 日本語の文字数を数える */
+    int num_jp = cnt_jp(buf);
+    snprintf(p_buf, MSGBUF_SIZE + 10, "[You]: %s", buf);
+    /* 右寄せで表示する */
+    wattron(win, COLOR_PAIR(COL_GRN_WHT));
+    wprintw(win, "%*s\n", COLS + num_jp, buf);
+    wattroff(win, COLOR_PAIR(COL_GRN_WHT));
+}
+
 /* 日本語の出現回数をカウントする関数 */
 int cnt_jp(char *str) {
     /* UTF8で日本語は3バイト */
