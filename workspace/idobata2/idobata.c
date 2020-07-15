@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
     if (search_server(port_number) == SERVER_EXIST) {
         idobata_client(port_number);
     } else {
-        // idobata_server(port_number);
+        idobata_server(port_number);
     }
 
     exit(EXIT_SUCCESS);
