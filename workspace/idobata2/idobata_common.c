@@ -132,7 +132,7 @@ void show_your_msg(WINDOW *win, char *buf) {
     snprintf(p_buf, MSGBUF_SIZE + 10, "[You]: %s", buf);
     /* 右寄せで表示する */
     wattron(win, COLOR_PAIR(COL_GRN_WHT));
-    wprintw(win, "%*s\n", COLS + num_jp, buf);
+    wprintw(win, "%*s\n", COLS + num_jp, p_buf);
     wattroff(win, COLOR_PAIR(COL_GRN_WHT));
 }
 
