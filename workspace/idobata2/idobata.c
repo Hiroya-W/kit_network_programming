@@ -49,12 +49,11 @@ int main(int argc, char *argv[]) {
         help_message(argv[0]);
         exit(EXIT_FAILURE);
     }
-    printf("井戸端会議サーバーを検索します。\n");
-    // if (search_server(port_number)) {
-    //     idobata_client(port_number);
-    // } else {
-    //     idobata_server(port_number);
-    // }
+    if (search_server(port_number) == SERVER_EXIST) {
+        idobata_client(port_number);
+    } else {
+        // idobata_server(port_number);
+    }
 
     exit(EXIT_SUCCESS);
 }

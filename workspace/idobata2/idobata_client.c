@@ -41,6 +41,5 @@ static int init(int port_number) {
 
 /* クライアントモードで起動した時に最初に表示するメッセージ */
 static void show_client_mode_message() {
-    wprintw(win_main, "井戸端会議サーバーが見つかりました。\n");
     wprintw(win_main, "クライアントモードで起動します。\n");
 }
