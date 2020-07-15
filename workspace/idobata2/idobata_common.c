@@ -2,8 +2,22 @@
  * idobata_common.c
  */
 
+#include <stdio.h>
+
 #include "idobata.h"
 #include "mynet.h"
+
+char server_addr[20];
+
+/* サーバーアドレスを格納する */
+void set_server_addr(char *addr) {
+    snprintf(server_addr, 20, "%s", addr);
+}
+
+/* 格納されているサーバーアドレスを取得する */
+void get_server_addr(char *out) {
+    snprintf(out, 20, "%s", server_addr);
+}
 
 /*
   パケットの種類=type のパケットを作成する
