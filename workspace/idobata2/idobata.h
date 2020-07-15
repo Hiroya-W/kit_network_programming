@@ -83,13 +83,15 @@ int cnt_jp(char *str);
 //  idobata_server.c
 // =============================================
 /* サーバーを起動する */
-int idobata_server(int port_number);
+void idobata_server(int port_number);
 
 // =============================================
 //  idobata_client.c
 // =============================================
 /* クライアントを起動する */
 void idobata_client(int port_number);
+/* サーバーに参加する */
+int join_server(int port_number);
 
 // =============================================
 //  linear_lists.c
