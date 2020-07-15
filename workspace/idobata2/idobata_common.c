@@ -139,9 +139,14 @@ void show_your_msg(WINDOW *win, char *buf) {
 
 /* 他の人の送信したメッセージを表示する */
 void show_others_msg(WINDOW *win, char *buf) {
-    wattron(win, COLOR_PAIR(COL_CYN_WHT));
-    wprintw(win, buf);
-    wattron(win, COLOR_PAIR(COL_CYN_WHT));
+    ido_packet_t *packet;
+    packet = (ido_packet_t *)buf;
+    /* パケットのタイプがMESSAGEだったら表示する */
+    if (analyze_header(packet->header) == MESSAGE) {
+        wattron(win, COLOR_PAIR(COL_CYN_WHT));
+        wprintw(win, buf);
+        wattron(win, COLOR_PAIR(COL_CYN_WHT));
+    }
 }
 
 /* 日本語の出現回数をカウントする関数 */
