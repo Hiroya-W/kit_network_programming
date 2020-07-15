@@ -44,6 +44,10 @@ void set_server_addr(char *addr);
 
 /* 格納されているサーバーアドレスを取得する */
 void get_server_addr(char *out);
+/* ユーザー名を格納する */
+void set_user_name(char *name);
+/* 格納されているユーザ名を取得する */
+void get_user_name(char *out);
 /*
   パケットの種類=type のパケットを作成する
   パケットのデータは 内部的なバッファ(Buffer)に作成される
