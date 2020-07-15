@@ -69,7 +69,7 @@ void add_user_to_list(char *username, int sock) {
     }
     // 次のデータは無いので、nextにはNULLをセット。
     tail->next = NULL;
-    fprintf(stdout, "新しいメンバー %s を追加しました。\n", username);
+    // fprintf(stdout, "新しいメンバー %s を追加しました。\n", username);
 }
 
 /* リストを表示する */
@@ -114,7 +114,7 @@ void delete_user_from_list(int sock) {
     while (current != NULL) {
         if (current->sock == sock) {
             // ノードが見つかればループ終了。
-            fprintf(stdout, "削除するノードが見つかりました。\n");
+            // fprintf(stdout, "削除するノードが見つかりました。\n");
             break;
         } else {
             // 現在のノードを1つ前のノード(prev)として記憶。
@@ -124,7 +124,7 @@ void delete_user_from_list(int sock) {
     }
     // 削除するノードが見つからなかったら、何もせずreturn。
     if (current == NULL) {
-        fprintf(stdout, "ノードが見つかりませんでした。\n");
+        // fprintf(stdout, "ノードが見つかりませんでした。\n");
         return;
     }
 
@@ -147,5 +147,5 @@ void delete_user_from_list(int sock) {
         // 削除対象のノードを開放。
         free(current);
     }
-    fprintf(stdout, "削除が完了しました。\n");
+    // fprintf(stdout, "削除が完了しました。\n");
 }
