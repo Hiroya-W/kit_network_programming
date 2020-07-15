@@ -18,7 +18,6 @@ void help_message(char *script_name);
 
 int main(int argc, char *argv[]) {
     int port_number = DEFAULT_PORT;
-    char user_name[USERNAME_LEN];
     int is_name_changed = 0;
     int c;
 
@@ -30,7 +29,7 @@ int main(int argc, char *argv[]) {
             break;
         switch (c) {
             case 'n': /* ユーザ名の指定 */
-                snprintf(user_name, USERNAME_LEN, "%s", optarg);
+                set_user_name(optarg);
                 is_name_changed = 1;
                 break;
             case 'p': /* ポート番号の指定 */
@@ -50,6 +49,7 @@ int main(int argc, char *argv[]) {
         help_message(argv[0]);
         exit(EXIT_FAILURE);
     }
+    printf("井戸端会議サーバーを検索します。\n");
     // if (search_server(port_number)) {
     //     idobata_client(port_number);
     // } else {
