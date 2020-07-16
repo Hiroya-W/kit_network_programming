@@ -107,14 +107,3 @@ void send_msg_from_keyboard(int sock, char *p_buf) {
     /* 送信 */
     Send(sock, s_buf, strsize, 0);
 }
-
-int recv_msg_from_server(int sock, char *buf) {
-    /* サーバーから文字列を受信する */
-    int strsize = Recv(sock, buf, MSGBUF_SIZE - 1, 0);
-    /* サーバから切断されたら */
-    if (strsize == 0) {
-        return -1;
-    }
-    buf[strsize] = '\0';
-    return 0;
-}
