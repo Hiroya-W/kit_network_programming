@@ -19,7 +19,7 @@ static int Max_sd = 0;
 static void init(int port_number, int *server_udp_sock, int *server_tcp_sock, int *client_tcp_sock);
 static void recv_udp_packet(int udp_sock);
 static void recv_msg_from_client(fd_set *readfds);
-static void delete_user(int sock);
+static void delete_user(char *user_name, int sock);
 static void register_username(member_t user, ido_packet_t *packet);
 static void transfer_message(char *message, char *from_user_name, int from_sock);
 static void setMax_sd(int num);
@@ -77,7 +77,7 @@ void idobata_server(int port_number) {
             char r_buf[MSGBUF_SIZE];
             int strsize = Recv(client_tcp_sock, r_buf, MSGBUF_SIZE - 1, 0);
             if (strsize == 0) {
-                wprintw(win_main, "井戸端サーバーが終了しました。\nキー入力でクライアントを終了します。\n");
+                wprintw(win_main, "井戸端サーバーから切断しました。\nキー入力でクライアントを終了します。\n");
                 wrefresh(win_main);
                 close(client_tcp_sock);
                 /* 何かのキー入力を待つ */
@@ -165,7 +165,7 @@ static void recv_msg_from_client(fd_set *readfds) {
 
         // 切断された時
         if (strsize == 0) {
-            delete_user(current->sock);
+            delete_user(current->username, current->sock);
             current = current->next;
             continue;
         }
@@ -187,7 +187,7 @@ static void recv_msg_from_client(fd_set *readfds) {
                 break;
             case QUIT:
                 // ユーザの登録情報を削除する
-                delete_user(current->sock);
+                delete_user(current->username, current->sock);
                 break;
             default:
                 break;
@@ -196,6 +196,7 @@ static void recv_msg_from_client(fd_set *readfds) {
     }
 }
 
+/* ユーザ名前を登録する */
 static void register_username(member_t user, ido_packet_t *packet) {
     char message[MSGDATA_SIZE];
     /* JOINパケットだったら登録する */
@@ -208,7 +209,11 @@ static void register_username(member_t user, ido_packet_t *packet) {
     }
 }
 
-static void delete_user(int sock) {
+/* ユーザの登録情報を削除する */
+static void delete_user(char *user_name, int sock) {
+    char s_buf[MSGDATA_SIZE];
+    snprintf(s_buf, MSGDATA_SIZE, "%sがサーバーから切断しました。", user_name);
+    transfer_message(s_buf, "Server", -1);
     delete_user_from_list(sock);
     close(sock);
 }
