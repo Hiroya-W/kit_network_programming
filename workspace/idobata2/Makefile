@@ -13,5 +13,7 @@ all: idobata
 idobata: ${OBJS}
 	${CC} ${CFLAGS} -o $@ $^ ${MYLIB}
 
+${OBJS}: idobata.h
+
 clean:
 	${RM} *.o idobata *~
