@@ -1,0 +1,20 @@
+[
+ {
+  "directory": "/home/hiroya/Documents/Latex/kit/network_programming/workspace/idobata2",
+  "arguments": [
+   "gcc",
+   "-I",
+   "../mynet",
+   "-L",
+   "../mynet",
+   "-W",
+   "-Wall",
+   "-g",
+   "-c",
+   "-o",
+   "idobata.o",
+   "idobata.c"
+  ],
+  "file": "idobata.c"
+ }
+]
