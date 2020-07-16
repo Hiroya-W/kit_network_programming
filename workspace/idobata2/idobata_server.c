@@ -212,7 +212,7 @@ static void register_username(member_t user, ido_packet_t *packet) {
 /* ユーザの登録情報を削除する */
 static void delete_user(char *user_name, int sock, fd_set *mask) {
     char s_buf[MSGDATA_SIZE];
-    snprintf(s_buf, MSGDATA_SIZE, "%sがサーバーから切断しました。", user_name);
+    snprintf(s_buf, MSGDATA_SIZE, "%sがサーバーから切断しました。\n", user_name);
     transfer_message(s_buf, "Server", -1);
     /* selectの対象外にする */
     FD_CLR(sock, mask);
