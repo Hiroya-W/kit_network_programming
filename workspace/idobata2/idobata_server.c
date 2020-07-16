@@ -1,5 +1,9 @@
+#include <asm-generic/errno-base.h>
 #include <curses.h>
+#include <errno.h>
 #include <ncurses.h>
+#include <netdb.h>
+#include <signal.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/select.h>
@@ -13,19 +17,20 @@
 
 /* Window */
 static WINDOW *win_main, *win_sub;
+/* Selectで監視するためのマスクと結果 */
+fd_set mask, readfds;
 /* selectで監視する最大値 */
 static int Max_sd = 0;
 
 static void init(int port_number, int *server_udp_sock, int *server_tcp_sock, int *client_tcp_sock);
 static void recv_udp_packet(int udp_sock);
-static void recv_msg_from_client(fd_set *mask, fd_set *readfds);
-static void delete_user(char *user_name, int sock, fd_set *mask);
+static void recv_msg_from_client();
+static void delete_user(char *user_name, int sock);
 static void register_username(member_t user, ido_packet_t *packet);
 static void transfer_message(char *message, char *from_user_name, int from_sock);
 static void setMax_sd(int num);
 
 void idobata_server(int port_number) {
-    fd_set mask, readfds;
     int server_udp_sock;
     int server_tcp_sock;
     int client_tcp_sock;
@@ -89,7 +94,7 @@ void idobata_server(int port_number) {
         }
         /* サーバーがクライアントからメッセージを受け取った時 */
         else {
-            recv_msg_from_client(&mask, &readfds);
+            recv_msg_from_client();
         }
     }
 }
@@ -144,7 +149,7 @@ static void recv_udp_packet(int udp_sock) {
     Sendto(udp_sock, s_buf, strsize, 0, (struct sockaddr *)&from_adrs, sizeof(from_adrs));
 }
 
-static void recv_msg_from_client(fd_set *mask, fd_set *readfds) {
+static void recv_msg_from_client() {
     char r_buf[MSGBUF_SIZE];
     int strsize;
     // 特定のユーザからメッセージが届いている
@@ -154,7 +159,7 @@ static void recv_msg_from_client(fd_set *mask, fd_set *readfds) {
         int client_sock = current->sock;
         ido_packet_t *packet;
         /* このユーザからはメッセージが届いていないのでスキップ */
-        if (!FD_ISSET(client_sock, readfds)) {
+        if (!FD_ISSET(client_sock, &readfds)) {
             current = current->next;
             continue;
         }
@@ -165,7 +170,7 @@ static void recv_msg_from_client(fd_set *mask, fd_set *readfds) {
 
         // 切断された時
         if (strsize == 0) {
-            delete_user(current->username, current->sock, mask);
+            delete_user(current->username, current->sock);
             current = current->next;
             continue;
         }
@@ -187,7 +192,7 @@ static void recv_msg_from_client(fd_set *mask, fd_set *readfds) {
                 break;
             case QUIT:
                 // ユーザの登録情報を削除する
-                delete_user(current->username, current->sock, mask);
+                delete_user(current->username, current->sock);
                 break;
             default:
                 break;
@@ -210,12 +215,12 @@ static void register_username(member_t user, ido_packet_t *packet) {
 }
 
 /* ユーザの登録情報を削除する */
-static void delete_user(char *user_name, int sock, fd_set *mask) {
+static void delete_user(char *user_name, int sock) {
     char s_buf[MSGDATA_SIZE];
     snprintf(s_buf, MSGDATA_SIZE, "%sがサーバーから切断しました。\n", user_name);
     transfer_message(s_buf, "Server", -1);
     /* selectの対象外にする */
-    FD_CLR(sock, mask);
+    FD_CLR(sock, &mask);
     /* コネクションを終了する */
     close(sock);
     /* ユーザを削除する */
@@ -236,9 +241,13 @@ static void transfer_message(char *message, char *from_user_name, int from_sock)
 
     member_t current = get_head_from_list();
     while (current != NULL) {
-        // メッセージの送信者以外に送信する
+        // メッセージを送信者以外に送信する
         if (current->sock != from_sock) {
-            Send(current->sock, s_buf, MSGBUF_SIZE, 0);
+            int ret = send(current->sock, s_buf, MSGBUF_SIZE, MSG_NOSIGNAL);
+            if (ret == -1 && errno == EPIPE) {
+                // 通信相手が切断していた時
+                delete_user(current->username, current->sock);
+            }
         }
         current = current->next;
     }
