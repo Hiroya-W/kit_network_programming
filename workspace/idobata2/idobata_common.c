@@ -144,7 +144,7 @@ void show_others_msg(WINDOW *win, char *buf) {
     /* パケットのタイプがMESSAGEだったら表示する */
     if (analyze_header(packet->header) == MESSAGE) {
         wattron(win, COLOR_PAIR(COL_CYN_WHT));
-        wprintw(win, buf);
+        wprintw(win, packet->data);
         wattron(win, COLOR_PAIR(COL_CYN_WHT));
     }
 }
