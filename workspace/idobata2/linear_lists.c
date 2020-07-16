@@ -140,6 +140,11 @@ void delete_user_from_list(int sock) {
         head = current->next;
         // 削除対象のノードを開放。
         free(current);
+    } else if (current == tail) {
+        // 削除対象が末尾のノードだった場合
+        // 末尾より一個前をtailにする
+        tail = prev;
+        free(current);
     } else {
         // 削除対象が先頭のノードではない場合。
         // 「削除対象の1つ前」のnextに、「削除対象の1つ後ろ」をセット。
