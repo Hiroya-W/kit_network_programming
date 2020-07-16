@@ -44,7 +44,7 @@ void idobata_client(int port_number) {
             char r_buf[MSGBUF_SIZE];
             int strsize = Recv(sock, r_buf, MSGBUF_SIZE - 1, 0);
             if (strsize == 0) {
-                wprintw(win_main, "井戸端サーバーが終了しました。\nキー入力でクライアントを終了します。\n");
+                wprintw(win_main, "井戸端サーバーから切断しました。\nキー入力でクライアントを終了します。\n");
                 wrefresh(win_main);
                 close(sock);
                 /* 何かのキー入力を待つ */
@@ -100,9 +100,8 @@ void send_msg_from_keyboard(int sock, char *p_buf) {
         /* QUITパケットを作成する */
         create_packet(s_buf, QUIT, "");
     } else {
-        snprintf(s_buf, MSGDATA_SIZE, "%s", p_buf);
         /* POST パケットを作成する */
-        create_packet(s_buf, POST, s_buf);
+        create_packet(s_buf, POST, p_buf);
     }
     strsize = strlen(s_buf);
     /* 送信 */
