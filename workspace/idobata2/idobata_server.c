@@ -130,8 +130,6 @@ static void recv_udp_packet(int udp_sock) {
     from_len = sizeof(from_adrs);
     strsize = Recvfrom(udp_sock, r_buf, MSGBUF_SIZE, 0, (struct sockaddr *)&from_adrs, &from_len);
 
-    // show_adrsinfo((struct sockaddr_in *)&from_adrs);
-
     packet = (ido_packet_t *)r_buf; /* packetがバッファの先頭を指すようにする */
     /* HELLOパケット以外は受け取らない */
     if (analyze_header(packet->header) != HELLO) {

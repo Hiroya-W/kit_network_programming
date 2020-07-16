@@ -44,7 +44,7 @@ void idobata_client(int port_number) {
             char r_buf[MSGBUF_SIZE];
             int strsize = Recv(sock, r_buf, MSGBUF_SIZE - 1, 0);
             if (strsize == 0) {
-                wprintw(win_main, "井戸端サーバーから切断しました。\nキー入力でクライアントを終了します。\n");
+                wprintw(win_main, "井戸端サーバーが終了しました。\nキー入力でクライアントを終了します。\n");
                 wrefresh(win_main);
                 close(sock);
                 /* 何かのキー入力を待つ */
