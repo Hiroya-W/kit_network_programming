@@ -156,7 +156,7 @@ static void recv_msg_from_client(fd_set *readfds) {
         int client_sock = current->sock;
         ido_packet_t *packet;
         /* このユーザからはメッセージが届いていないのでスキップ */
-        if (FD_ISSET(client_sock, readfds)) {
+        if (!FD_ISSET(client_sock, readfds)) {
             current = current->next;
             continue;
         }
