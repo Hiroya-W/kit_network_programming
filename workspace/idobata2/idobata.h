@@ -22,7 +22,7 @@
 #define QUIT 6
 
 /* UDP通信でタイムアウトを使用する */
-#define TIMEOUT_SEC 2
+#define TIMEOUT_SEC 1
 
 /* メッセージ全体のサイズは512バイト */
 #define MSGBUF_SIZE 512
