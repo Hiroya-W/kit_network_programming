@@ -6,7 +6,7 @@ MYLIBDIR =../mynet
 MYLIB =-lmynet
 CFLAGS =-I ${MYLIBDIR} -L ${MYLIBDIR} -W -Wall
 
-all: udp_client udp_server udp_client1 udp_server1
+all: udp_client udp_server udp_client1 udp_server1 udp_client2 udp_client3
 
 udp_client: udp_client.o
 	${CC} ${CFLAGS} -o $@ $^ ${MYLIB}
@@ -18,6 +18,12 @@ udp_client1: udp_client1.o
 	${CC} ${CFLAGS} -o $@ $^ ${MYLIB}
 
 udp_server1: udp_server1.o
+	${CC} ${CFLAGS} -o $@ $^ ${MYLIB}
+
+udp_client2: udp_client2.o
+	${CC} ${CFLAGS} -o $@ $^ ${MYLIB}
+
+udp_client3: udp_client3.o
 	${CC} ${CFLAGS} -o $@ $^ ${MYLIB}
 
 clean:
