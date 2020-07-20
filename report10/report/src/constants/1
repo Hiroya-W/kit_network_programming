@@ -1,0 +1,2 @@
+#define SERVER_NOT_EXIST 0
+#define SERVER_EXIST 1

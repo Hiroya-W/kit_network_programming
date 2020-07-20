@@ -1,0 +1,54 @@
+static void recv_msg_from_client() {
+    char r_buf[MSGBUF_SIZE];
+    int strsize;
+
+    // 線形リストの先頭を取得する
+    member_t current = get_head_from_list();
+    // 線形リストを走査し、全メンバーのsockを確認する
+    while (current != NULL) {
+        int client_sock = current->sock;
+        ido_packet_t *packet;
+        /* selectを用いてメッセージが届いているか確認する */
+        if (!FD_ISSET(client_sock, &readfds)) {
+            /* このユーザからはメッセージが届いていないのでスキップ */
+            current = current->next;
+            continue;
+        }
+        // このユーザから受信する
+        strsize = Recv(client_sock, r_buf, MSGBUF_SIZE - 1, 0);
+        r_buf[strsize] = '\0';
+        packet = (ido_packet_t *)r_buf;
+
+        // 切断された時
+        if (strsize == 0) {
+            delete_user(current->username, current->sock);
+            current = current->next;
+            continue;
+        }
+
+        // 名前が未設定->まだ参加していない
+        if (strlen(current->username) == 0) {
+            /* 名前を登録する */
+            /* なお、そのパケットがJOINパケットのときのみ、名前登録が行われる */
+            register_username(current, packet);
+            current = current->next;
+            continue;
+        }
+
+        // ヘッダで分岐させる
+        // ここに来るメッセージはPOSTかQUITしか無い
+        switch (analyze_header(packet->header)) {
+            case POST:
+                // メッセージを転送する
+                transfer_message(packet->data, current->username, current->sock);
+                break;
+            case QUIT:
+                // ユーザの登録情報を削除する
+                delete_user(current->username, current->sock);
+                break;
+            default:
+                break;
+        }
+        current = current->next;
+    }
+}

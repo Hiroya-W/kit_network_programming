@@ -1,0 +1,5 @@
+#define SUBWIN_LINES 5 /* サブウィンドウの行数 */
+
+static void init_color_pair(); /* Color pairの定義 */
+
+void create_window(WINDOW **win_main, WINDOW **win_sub); /* WINDOWを作成 */

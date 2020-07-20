@@ -1,0 +1,18 @@
+char server_addr[20]; /* サーバーアドレス */
+char user_name[USERNAME_LEN]; /* ユーザー名 */
+/* サーバーを検索する */
+int search_server(int port_number);
+/* サーバーアドレスを格納する */
+void set_server_addr(char *addr);
+/* 格納されているサーバーアドレスを取得する */
+void get_server_addr(char *out);
+/* ユーザー名を格納する */
+void set_user_name(char *name);
+/* 格納されているユーザ名を取得する */
+void get_user_name(char *out);
+/* 自分が送信したメッセージを表示する */
+void show_your_msg(WINDOW *win, char *buf);
+/* 他の人の送信したメッセージを表示する */
+void show_others_msg(WINDOW *win, char *buf);
+/* 日本語の出現回数をカウントする関数 */
+int cnt_jp(char *str);

@@ -1,0 +1,54 @@
+/* メインループ */
+while (1) {
+    /* 受信データの有無をチェック */
+    readfds = mask;
+    select(Max_sd + 1, &readfds, NULL, NULL, NULL);
+    /* キーボードからの入力があった時 */
+    if (FD_ISSET(0, &readfds)) {
+        char p_buf[MSGBUF_SIZE];
+        /* キーボードから文字列を入力する */
+        wgetnstr(win_sub, p_buf, MSGDATA_SIZE - 2);
+        /* 入力した文字列をサーバーに送信する */
+        send_msg_from_keyboard(client_tcp_sock, p_buf);
+        /* 自分が入力した文字列を表示する */
+        show_your_msg(win_main, p_buf);
+    }
+    /* UDPパケットを受け取る時->サーバーを探しているクライアントがいた時 */
+    else if (FD_ISSET(server_udp_sock, &readfds)) {
+        /* 送信してきたクライアントに対して、HELOパケットを送信する */
+        recv_udp_packet(server_udp_sock);
+    }
+    // 新しいクライアントがコネクション張ろうとしている
+    else if (FD_ISSET(server_tcp_sock, &readfds)) {
+        /* クライアントの接続を受け付ける */
+        int sock_accepted = Accept(server_tcp_sock, NULL, NULL);
+        /* 名前はJOINパケット受信時に登録するので、ここでは設定せずに登録 */
+        add_user_to_list("", sock_accepted);
+        /* クライアントとの通信を確認するため、ビットマスクをセット */
+        FD_SET(sock_accepted, &mask);
+        /* selectで監視する最大値を更新 */
+        setMax_sd(sock_accepted);
+    }
+    /* サーバーからメッセージを受け取った時 */
+    else if (FD_ISSET(client_tcp_sock, &readfds)) {
+        char r_buf[MSGBUF_SIZE];
+        /* メッセージを受信する */
+        int strsize = Recv(client_tcp_sock, r_buf, MSGBUF_SIZE - 1, 0);
+        if (strsize == 0) {
+            wprintw(win_main, "井戸端サーバーから切断しました。\nキー入力でクライアントを終了します。\n");
+            wrefresh(win_main);
+            close(client_tcp_sock);
+            /* 何かのキー入力を待つ */
+            wgetch(win_sub);
+            return;
+        }
+        r_buf[strsize] = '\0';
+        /* 受信したメッセージを表示する */
+        show_others_msg(win_main, r_buf);
+    }
+    /* サーバーがクライアントからメッセージを受け取った時 */
+    else {
+        /* そのクライアントからメッセージを受信し、他のクライアントに転送する */
+        recv_msg_from_client();
+    }
+}

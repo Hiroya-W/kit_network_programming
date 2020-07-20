@@ -1,0 +1,22 @@
+#define FROM_SERVER -1 /* メッセージ送信者がサーバーの時にsockに渡す値 */
+
+static WINDOW *win_main, *win_sub; /* Window */
+fd_set mask, readfds; /* Selectで監視するためのマスクと結果 */
+static int Max_sd = 0; /* selectで監視する最大値 */
+
+/* サーバーを初期化する */
+static void init(int port_number, int *server_udp_sock, int *server_tcp_sock, int *client_tcp_sock);
+/* サーバーとして実行する */
+void idobata_server(int port_number);
+/* UDPパケットを受信したときの処理 */
+static void recv_udp_packet(int udp_sock);
+/* クライアントからパケットを受信したときの処理 */
+static void recv_msg_from_client();
+/* ユーザの登録情報を削除する */
+static void delete_user(char *user_name, int sock);
+/* ユーザ名前を登録する */
+static void register_username(member_t user, ido_packet_t *packet);
+/* メッセージを転送する */
+static void transfer_message(char *message, char *from_user_name, int from_sock);
+/* selectで監視する値を更新する */
+static void setMax_sd(int num);

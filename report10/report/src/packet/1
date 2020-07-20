@@ -1,0 +1,8 @@
+/*
+ * パケットの種類=type のパケットを作成する
+ * パケットのデータは 内部的なバッファ(Buffer)に作成される
+ */
+void create_packet(char *Buffer, unsigned int type, char *message);
+
+/* パケットのタイプを解析する */
+unsigned int analyze_header(char *header);

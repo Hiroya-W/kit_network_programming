@@ -1,0 +1,14 @@
+%このファイルは日本語文字を含みます.
+\BOOKMARK [1][-]{section.1}{共通して使用する定数値}{}% 1
+\BOOKMARK [1][-]{section.2}{共通して使用する構造体}{}% 2
+\BOOKMARK [1][-]{section.3}{ウィンドウ作成用ソースコード\(window.c\)}{}% 3
+\BOOKMARK [1][-]{section.4}{パケットの解析+作成用ソースコード\(packet.c\)}{}% 4
+\BOOKMARK [1][-]{section.5}{ユーザ情報へアクセスするための線形リストの実装\(linear\137lists.c\)}{}% 5
+\BOOKMARK [1][-]{section.6}{共通で使用する関数のソースコード\(idobata\137common.c\)}{}% 6
+\BOOKMARK [1][-]{section.7}{クライアント用関数のソースコード\(idobata\137client.c\)}{}% 7
+\BOOKMARK [1][-]{section.8}{サーバー用関数のソースコード\(idobata\137server.c\)}{}% 8
+\BOOKMARK [1][-]{section.9}{井戸端会議エントリポイントのソースコード\(idobata.c\)}{}% 9
+\BOOKMARK [1][-]{section.10}{ヘッダファイル\(idobata.h\)}{}% 10
+\BOOKMARK [1][-]{section.11}{フローチャート}{}% 11
+\BOOKMARK [1][-]{section.12}{クライアントからの不定期なデータ処理}{}% 12
+\BOOKMARK [1][-]{lstnumber.17.54}{参考文献}{}% 13

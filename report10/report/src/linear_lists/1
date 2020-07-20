@@ -1,0 +1,11 @@
+static member_t head = NULL; /* 線形リストの先頭 */
+static member_t tail = NULL; /* 線形リストの末尾 */
+
+/* 新しくメンバーを生成する関数 */
+member_t create_member();
+/* 線形リストの先頭を取得する */
+member_t get_head_from_list();
+/* 新しいメンバーを線形リストの末尾に追加する */
+void add_user_to_list(char *username, int sock);
+/* sockを指定して、そのメンバーを削除する */
+void delete_user_from_list(int sock);

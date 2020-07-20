@@ -1,0 +1,8 @@
+#define DEFAULT_PORT 50001 /* ポート番号既定値 */
+/* 実行時引数 */
+extern char *optarg;
+extern int optind, opterr, optopt;
+/* エントリポイント */
+int main(int argc, char *argv[]);
+/* ヘルプ表示 */
+void help_message(char *script_name);

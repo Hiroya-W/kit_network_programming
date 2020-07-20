@@ -1,0 +1,5 @@
+typedef struct _idobata {
+    char header[4]; /* パケットのヘッダ部(4バイト) */
+    char sep;       /* セパレータ(空白、またはゼロ) */
+    char data[MSGDATA_SIZE]; /* データ部分(メッセージ本体) */
+} ido_packet_t;

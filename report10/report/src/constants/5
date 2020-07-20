@@ -1,0 +1,3 @@
+#define COL_BLK_WHT 1
+#define COL_GRN_WHT 2
+#define COL_CYN_WHT 3

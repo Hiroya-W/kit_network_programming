@@ -1,0 +1,6 @@
+#define HELLO 1
+#define HERE 2
+#define JOIN 3
+#define POST 4
+#define MESSAGE 5
+#define QUIT 6
